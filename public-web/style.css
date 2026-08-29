@@ -1,0 +1,147 @@
+/* ============================================================================
+   DoT Connect 2026 — public leaderboard.
+   Built for a large event TV first (§11, §19), and to stay readable on a phone
+   reached via the QR code (§15). Each of the four challenges owns an accent.
+   ============================================================================ */
+:root {
+  --bg: #0a0d18;
+  --surface: #12162a;
+  --surface-2: #191e38;
+  --line: #272e4d;
+  --text: #eef1f9;
+  --text-dim: #8a93b6;
+  --gold: #ffd66b;
+
+  --speedcube: #ffb020;
+  --chess: #b98bff;
+  --typing: #34d6a5;
+  --debug: #ff6b81;
+
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 600px at 85% -10%, #1a2450 0%, transparent 55%),
+    radial-gradient(900px 500px at -10% 110%, #241a44 0%, transparent 55%),
+    var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+/* ---------- top bar ---------- */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px clamp(16px, 4vw, 48px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-dot {
+  width: 20px; height: 20px; border-radius: 6px;
+  background: conic-gradient(from 210deg, var(--speedcube), var(--chess), var(--typing), var(--debug), var(--speedcube));
+  box-shadow: 0 0 24px rgba(185,139,255,0.5);
+}
+.brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-name { font-family: 'Archivo', sans-serif; font-weight: 800; letter-spacing: 0.02em; font-size: clamp(1.1rem, 2vw, 1.5rem); }
+.brand-name b { color: var(--speedcube); font-weight: 900; }
+.brand-sub { color: var(--text-dim); font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 3px; }
+
+.live { display: flex; align-items: center; gap: 8px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+.live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--typing); box-shadow: 0 0 10px var(--typing); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* ---------- tabs / selector (§12) ---------- */
+.tabs {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 16px clamp(16px, 4vw, 48px) 0;
+}
+.tab {
+  border: 1px solid var(--line); background: var(--surface);
+  color: var(--text-dim); font-family: 'Archivo', sans-serif; font-weight: 700;
+  padding: 9px 16px; border-radius: 999px; cursor: pointer; font-size: 0.9rem;
+  display: inline-flex; align-items: center; gap: 7px; transition: all .15s;
+}
+.tab:hover { color: var(--text); border-color: var(--text-dim); }
+.tab[aria-selected="true"] { color: #0a0d18; background: var(--text); border-color: var(--text); }
+.tab[data-key="all"][aria-selected="true"] { background: linear-gradient(90deg, var(--speedcube), var(--chess)); border: none; }
+
+/* ---------- board layout ---------- */
+.board { padding: 24px clamp(16px, 4vw, 48px) 8px; }
+.loading { color: var(--text-dim); }
+
+.grid-all {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+@media (max-width: 900px) { .grid-all { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+}
+.panel::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--accent, var(--line)); }
+
+.panel-head {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 16px 18px 10px;
+}
+.panel-icon { font-size: 1.4rem; filter: saturate(1.2); }
+.panel-title { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+.panel-note { color: var(--text-dim); font-size: 0.75rem; margin-left: auto; text-align: right; }
+.provisional {
+  display: inline-block; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--gold); border: 1px solid var(--gold); border-radius: 999px; padding: 1px 7px; margin-left: 6px;
+}
+
+/* ---------- tables ---------- */
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  text-align: left; color: var(--text-dim); font-weight: 600;
+  font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 6px 18px; border-bottom: 1px solid var(--line);
+}
+tbody td { padding: 9px 18px; border-bottom: 1px solid rgba(39,46,77,0.5); font-size: 0.92rem; }
+tbody tr:last-child td { border-bottom: none; }
+
+.rank { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--text-dim); width: 2.5em; }
+tr.top1 .rank { color: var(--gold); }
+tr.top1 .name { color: var(--gold); font-weight: 600; }
+.name { font-weight: 500; }
+.ident { font-family: 'JetBrains Mono', monospace; color: var(--text-dim); font-size: 0.82rem; }
+.score { font-family: 'JetBrains Mono', monospace; font-weight: 700; text-align: right; white-space: nowrap; color: var(--accent); }
+.score .unit { color: var(--text-dim); font-weight: 500; font-size: 0.8em; margin-left: 3px; }
+
+.empty td { color: var(--text-dim); font-style: italic; text-align: center; padding: 22px; }
+
+/* Accent binding per challenge */
+.c-speedcube { --accent: var(--speedcube); }
+.c-chess { --accent: var(--chess); }
+.c-typing { --accent: var(--typing); }
+.c-debug { --accent: var(--debug); }
+
+/* ---------- detailed single-challenge view (§12) ---------- */
+.detail { }
+.detail .panel-head { padding: 20px 22px 14px; }
+.detail .panel-title { font-size: 1.5rem; }
+.detail tbody td { padding: 11px 18px; }
+.detail .meta { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; white-space: nowrap; }
+
+/* On the TV, larger everything */
+@media (min-width: 1600px) {
+  .panel-title { font-size: 1.45rem; }
+  tbody td { font-size: 1.15rem; padding: 12px 22px; }
+  thead th { font-size: 0.8rem; }
+}
+
+.foot {
+  padding: 22px clamp(16px, 4vw, 48px) 40px;
+  color: var(--text-dim); font-size: 0.8rem; max-width: 900px;
+}

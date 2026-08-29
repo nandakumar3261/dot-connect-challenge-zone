@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoT Connect — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="appbar">
+    <div class="appbar-brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">DoT Connect <b>2026</b></span>
+      <span class="pill pill-admin">Admin</span>
+    </div>
+    <div class="appbar-right">
+      <span id="whoami" class="whoami"></span>
+      <a href="console.html" class="btn btn-ghost">Console</a>
+      <button id="logoutBtn" class="btn btn-ghost">Sign out</button>
+    </div>
+  </header>
+
+  <nav class="admin-tabs" id="adminTabs">
+    <button class="atab" data-view="students" aria-selected="true">Students</button>
+    <button class="atab" data-view="results">Results</button>
+    <button class="atab" data-view="volunteers">Volunteers &amp; permissions</button>
+    <button class="atab" data-view="exports">Exports</button>
+  </nav>
+
+  <main class="admin">
+
+    <!-- ===== STUDENTS ===== -->
+    <section class="view" id="view-students">
+      <div class="stats-bar" id="statsBar"></div>
+      <div class="card">
+        <div class="card-head">
+          <h2>Students</h2>
+          <div class="head-actions">
+            <input id="studentSearch" class="input" placeholder="Filter by name / roll / DoT ID">
+            <button id="refreshStudentsBtn" class="btn btn-ghost btn-sm">Refresh</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr>
+              <th>DoT ID</th><th>Roll No.</th><th>Name</th><th>Mobile</th>
+              <th>Gender</th><th>Branch</th><th>Sec</th><th></th>
+            </tr></thead>
+            <tbody id="studentsBody"><tr><td colspan="8" class="muted">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== RESULTS ===== -->
+    <section class="view" id="view-results" hidden>
+      <div class="card">
+        <div class="card-head">
+          <h2>Results</h2>
+          <div class="head-actions">
+            <select id="resultChallengeFilter" class="input"><option value="">All challenges</option></select>
+            <select id="resultStatusFilter" class="input">
+              <option value="">Any status</option>
+              <option value="active">Active (best)</option>
+              <option value="superseded">Superseded</option>
+              <option value="invalid">Invalid</option>
+            </select>
+            <button id="refreshResultsBtn" class="btn btn-ghost btn-sm">Refresh</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr>
+              <th>Challenge</th><th>Name</th><th>Roll / ID</th><th>Result</th>
+              <th>Status</th><th>By</th><th>When</th><th></th>
+            </tr></thead>
+            <tbody id="resultsBody"><tr><td colspan="8" class="muted">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== VOLUNTEERS ===== -->
+    <section class="view" id="view-volunteers" hidden>
+      <div class="card">
+        <div class="card-head"><h2>Add volunteer</h2></div>
+        <div class="reg-grid">
+          <div class="field"><label for="volUser">Username *</label><input id="volUser" autocomplete="off"></div>
+          <div class="field"><label for="volName">Display name</label><input id="volName"></div>
+          <div class="field"><label for="volPass">Password *</label><input id="volPass" type="text" autocomplete="off"></div>
+        </div>
+        <label>Authorised challenges</label>
+        <div id="volPerms" class="perm-row"></div>
+        <button id="addVolBtn" class="btn btn-primary">Create volunteer</button>
+        <p id="volMsg" class="form-msg"></p>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Staff accounts</h2><button id="refreshVolBtn" class="btn btn-ghost btn-sm">Refresh</button></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Username</th><th>Role</th><th>Authorised challenges</th><th>Status</th><th></th></tr></thead>
+            <tbody id="volBody"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== EXPORTS ===== -->
+    <section class="view" id="view-exports" hidden>
+      <div class="card">
+        <div class="card-head"><h2>Export data</h2><p class="muted">Downloads as CSV. Student export includes mobile numbers for prize contact; result exports never do.</p></div>
+        <div class="export-row">
+          <button id="exportStudentsBtn" class="btn btn-primary">Download students.csv</button>
+          <button id="exportResultsBtn" class="btn btn-primary">Download results.csv</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+
+  <script src="admin.js"></script>
+</body>
+</html>

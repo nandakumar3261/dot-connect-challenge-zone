@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoT Connect — Staff Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="signin-page">
+  <main class="signin-wrap">
+    <form id="loginForm" class="signin-card">
+      <div class="signin-brand">
+        <span class="brand-dot"></span>
+        <div>
+          <div class="brand-name">DoT Connect <b>2026</b></div>
+          <div class="brand-sub">Challenge Zone · Staff</div>
+        </div>
+      </div>
+      <h1>Sign in</h1>
+      <p class="muted">Volunteers and administrators use the same sign-in. You'll land on the console for your role.</p>
+
+      <label for="username">Username</label>
+      <input id="username" type="text" autocomplete="username" required>
+
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" required>
+
+      <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+      <p id="loginError" class="form-error"></p>
+    </form>
+  </main>
+  <script src="staff.js"></script>
+</body>
+</html>

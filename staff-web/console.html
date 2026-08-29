@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoT Connect — Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="appbar">
+    <div class="appbar-brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">DoT Connect <b>2026</b></span>
+      <span class="pill pill-console">Console</span>
+    </div>
+    <div class="appbar-right">
+      <span id="whoami" class="whoami"></span>
+      <a id="adminLink" href="admin.html" class="btn btn-ghost" hidden>Admin</a>
+      <button id="logoutBtn" class="btn btn-ghost">Sign out</button>
+    </div>
+  </header>
+
+  <main class="console">
+
+    <!-- ============ SEARCH ============ -->
+    <section class="card span-2">
+      <div class="card-head">
+        <h2><span class="step">1</span> Search</h2>
+        <p class="muted">Find a student by roll number, DoT Connect ID, or name.</p>
+      </div>
+      <div class="search-row">
+        <input id="searchInput" class="input-lg" placeholder="Roll number, DOT26-…, or name" autocomplete="off">
+        <button id="searchBtn" class="btn btn-primary">Search</button>
+      </div>
+      <div id="searchResults" class="search-results"></div>
+    </section>
+
+    <!-- ============ SELECTED STUDENT + HISTORY ============ -->
+    <section class="card span-2" id="studentCard" hidden>
+      <div class="card-head">
+        <h2>Student</h2>
+        <button id="clearStudentBtn" class="btn btn-ghost btn-sm">Clear</button>
+      </div>
+      <div id="studentDetail" class="student-detail"></div>
+
+      <h3 class="subhead">Participation history</h3>
+      <div id="historyGrid" class="history-grid"></div>
+    </section>
+
+    <!-- ============ RECORD ============ -->
+    <section class="card" id="recordCard" hidden>
+      <div class="card-head">
+        <h2><span class="step">2</span> Record a result</h2>
+        <p class="muted">Only challenges you're authorised for appear here.</p>
+      </div>
+
+      <label for="recChallenge">Challenge</label>
+      <select id="recChallenge" class="input-lg">
+        <option value="">Select challenge…</option>
+      </select>
+
+      <div id="dupWarning" class="warn-box" hidden></div>
+      <div id="recFields" class="rec-fields"></div>
+
+      <button id="saveResultBtn" class="btn btn-primary btn-block" disabled>Save result</button>
+      <p id="recordMsg" class="form-msg"></p>
+    </section>
+
+    <!-- ============ REGISTER ============ -->
+    <section class="card" id="registerCard">
+      <div class="card-head">
+        <h2><span class="step">+</span> Register a new student</h2>
+        <p class="muted">Use this only when Search finds no existing profile. Leave roll number blank to auto-assign a DoT Connect ID.</p>
+      </div>
+      <div class="reg-grid">
+        <div class="field"><label for="regName">Full name *</label><input id="regName"></div>
+        <div class="field"><label for="regMobile">Mobile *</label><input id="regMobile" inputmode="numeric"></div>
+        <div class="field"><label for="regGender">Gender *</label><select id="regGender"></select></div>
+        <div class="field"><label for="regBranch">Branch *</label><input id="regBranch"></div>
+        <div class="field"><label for="regSection">Section *</label><input id="regSection"></div>
+        <div class="field"><label for="regRoll">Roll number <span class="muted">(optional)</span></label><input id="regRoll" placeholder="Auto DoT ID if blank"></div>
+      </div>
+      <button id="registerBtn" class="btn btn-primary">Register student</button>
+      <p id="registerMsg" class="form-msg"></p>
+    </section>
+
+  </main>
+
+  <script src="staff.js"></script>
+</body>
+</html>

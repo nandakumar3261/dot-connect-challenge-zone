@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoT Connect 2026 — Challenge Zone Leaderboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span class="brand-text">
+        <span class="brand-name">DoT&nbsp;Connect <b>2026</b></span>
+        <span class="brand-sub">Challenge Zone · Sept 1–12</span>
+      </span>
+    </div>
+    <div class="live" id="liveClock">
+      <span class="live-dot"></span><span id="clock">—</span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Challenge selector">
+    <!-- tabs injected from /api/config; "All Challenges" is first & default -->
+  </nav>
+
+  <main class="board" id="board">
+    <!-- content injected by leaderboard.js -->
+    <p class="loading">Loading leaderboard…</p>
+  </main>
+
+  <footer class="foot">
+    <p>Final winners for each challenge are announced after the event period — leading today doesn't declare a winner. Contact details are never shown here.</p>
+  </footer>
+
+  <script src="leaderboard.js"></script>
+</body>
+</html>
