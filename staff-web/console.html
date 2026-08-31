@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-default-theme="dark">
 <head>
+<script>(function(){try{var t=localStorage.getItem('dcz_theme')||document.documentElement.getAttribute('data-default-theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DoTT Connect — Console</title>
@@ -56,6 +57,7 @@
         <button class="icon-btn" title="Event window: Sept 2–11, 2026">
           <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         </button>
+        <button id="themeToggle" class="icon-btn theme-toggle" title="Toggle light / dark" aria-label="Toggle light or dark mode">🌙</button>
         <span class="avatar" id="avatarInitials">–</span>
       </div>
 
@@ -146,6 +148,7 @@
     </div>
   </div>
 
+  <script src="theme.js"></script>
   <script src="staff.js"></script>
 </body>
 </html>

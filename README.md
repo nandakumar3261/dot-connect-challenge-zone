@@ -60,10 +60,13 @@ tasks are never mixed on the same screen.
 ### What each challenge records (§8, finalised per the Leaderboard & Ranking Rules doc)
 | Challenge | Fields recorded | Ranking (§13) |
 |---|---|---|
-| Speed Cube | official time, s + ms (e.g. 14.205) | lower time is better |
-| Chess Puzzle Rush | puzzles solved · mistakes · time (s) | more puzzles → fewer mistakes → faster time |
-| Keyboard Killers | WPM · accuracy % | higher WPM, accuracy tie-breaker |
+| Speed Cube | minutes : seconds : milliseconds (shown as `m:ss.mmm`, e.g. `1:05.070` or `14.205s`) | lower time is better |
+| Chess Puzzle Rush | puzzles solved · mistakes (**max 3**) · time as minutes + seconds (shown as `m:ss`) | more puzzles → fewer mistakes → faster time |
+| Keyboard Killers | WPM · accuracy % (**accuracy below 88% is not accepted**) | higher WPM, accuracy tie-breaker |
 | Debug Challenge | time — seconds + milliseconds (not a score) | lower time is better *(format not yet finalised)* |
+
+Input limits are enforced on both the server and the record form: cube seconds/minutes 0–59 and
+milliseconds 0–999, chess mistakes 0–3, typing accuracy 88–100.
 
 Every board applies the **General Tie Rule**: students tied on every ranked field share the
 same rank, and the next distinct result's rank skips ahead accordingly (e.g. two students tied
@@ -73,8 +76,18 @@ student ID, or any other arbitrary field is never used to force unique ranks.
 ## 6. Leaderboard (§11, §12, §15)
 - Opens on **All Challenges** by default: the **Top 10 of each** of the four challenges on one
   page, tuned for a large TV. The four boards are independent — there is no combined ranking.
-- A **selector** switches to a detailed per-challenge board with academic details, full
-  performance, and record time.
+  Each row shows the student **name**, **roll / DoTT ID**, **score**, and the **volunteer** who
+  recorded it.
+- A **selector** switches to a detailed per-challenge board that additionally shows **branch /
+  section**, the full formatted score columns, the record time, and the recording volunteer.
+  Long boards are **paginated** (10 per page, Prev / Next) so they always fit the screen.
+- A **QR code** of the live leaderboard URL sits beside the games list on **All Challenges** —
+  it always points at whatever address the board is being served from (localhost while testing,
+  the event LAN IP on the day), so phones can scan straight through.
+- A 🔍 **"what's this score?"** button on every board explains, in plain English, what the score
+  means and how ranking works for that challenge.
+- **Light / dark mode** toggle (🌙 / ☀️) on every page — public and staff. The choice is
+  remembered in the browser and follows you across pages.
 - Mobile-friendly for QR access. **Mobile numbers never appear** on any public view.
 
 ## 7. Administrator dashboard

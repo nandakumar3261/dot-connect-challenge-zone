@@ -123,7 +123,7 @@ async function test(name, fn) {
   await test('volunteer records a Speed Cube result (§8)', async () => {
     const r = await api('POST', '/api/results', {
       token: cubeVolToken,
-      body: { studentId: studentA._id, challenge: 'speedcube', metrics: { timeSeconds: 18.5 } }
+      body: { studentId: studentA._id, challenge: 'speedcube', metrics: { minutes: 0, seconds: 18, milliseconds: 500 } }
     });
     assert.strictEqual(r.status, 201);
     assert.strictEqual(r.body.becameActive, true);
@@ -132,7 +132,7 @@ async function test(name, fn) {
   await test('a WORSE second attempt does NOT replace the best (§9)', async () => {
     const r = await api('POST', '/api/results', {
       token: cubeVolToken,
-      body: { studentId: studentA._id, challenge: 'speedcube', metrics: { timeSeconds: 25.0 } }
+      body: { studentId: studentA._id, challenge: 'speedcube', metrics: { minutes: 0, seconds: 25, milliseconds: 0 } }
     });
     assert.strictEqual(r.status, 201);
     assert.strictEqual(r.body.becameActive, false); // kept 18.5 as best
@@ -141,7 +141,7 @@ async function test(name, fn) {
   await test('a BETTER attempt DOES replace the best (§9)', async () => {
     const r = await api('POST', '/api/results', {
       token: cubeVolToken,
-      body: { studentId: studentA._id, challenge: 'speedcube', metrics: { timeSeconds: 12.0 } }
+      body: { studentId: studentA._id, challenge: 'speedcube', metrics: { minutes: 0, seconds: 12, milliseconds: 0 } }
     });
     assert.strictEqual(r.body.becameActive, true);
   });
@@ -149,13 +149,14 @@ async function test(name, fn) {
   await test('precheck warns that student already participated (§7)', async () => {
     const r = await api('GET', `/api/results/precheck?studentId=${studentA._id}&challenge=speedcube`, { token: cubeVolToken });
     assert.strictEqual(r.body.alreadyParticipated, true);
-    assert.strictEqual(r.body.best.metrics.timeSeconds, 12.0);
+    assert.strictEqual(r.body.best.metrics.seconds, 12);
+    assert.strictEqual(r.body.best.metrics.minutes, 0);
   });
 
   await test('volunteer CANNOT record an unauthorised challenge (§10/§17)', async () => {
     const r = await api('POST', '/api/results', {
       token: cubeVolToken,
-      body: { studentId: studentA._id, challenge: 'chess', metrics: { puzzlesSolved: 10, timeSeconds: 60, mistakes: 1 } }
+      body: { studentId: studentA._id, challenge: 'chess', metrics: { puzzlesSolved: 10, mistakes: 1, minutes: 1, seconds: 0 } }
     });
     assert.strictEqual(r.status, 403);
   });
@@ -168,11 +169,27 @@ async function test(name, fn) {
     assert.strictEqual(r.status, 400);
   });
 
+  await test('accuracy below 88 is rejected (§17)', async () => {
+    const r = await api('POST', '/api/results', {
+      token: adminToken,
+      body: { studentId: studentA._id, challenge: 'typing', metrics: { wpm: 80, accuracy: 80 } }
+    });
+    assert.strictEqual(r.status, 400);
+  });
+
+  await test('chess mistakes above 3 is rejected (§17)', async () => {
+    const r = await api('POST', '/api/results', {
+      token: adminToken,
+      body: { studentId: studentA._id, challenge: 'chess', metrics: { puzzlesSolved: 12, mistakes: 5, minutes: 1, seconds: 30 } }
+    });
+    assert.strictEqual(r.status, 400);
+  });
+
   await test('leaderboard shows Speed Cube best (12.0), no mobile exposed (§11/§15)', async () => {
     const r = await api('GET', '/api/leaderboard');
     assert.strictEqual(r.status, 200);
     const cube = r.body.boards.speedcube;
-    assert.strictEqual(cube[0].score, 12.0);
+    assert.strictEqual(cube[0].score, '12.000s');
     assert.ok(!JSON.stringify(r.body).includes('9876543210'));
   });
 
@@ -193,11 +210,11 @@ async function test(name, fn) {
   await test('admin invalidates the active result -> next best promoted (§16/§18)', async () => {
     // Current active is 12.0; the 18.5 and 25.0 attempts still exist as superseded.
     const list = await api('GET', '/api/results?challenge=speedcube&status=active', { token: adminToken });
-    const activeId = list.body.find(x => x.metrics.timeSeconds === 12.0)._id;
+    const activeId = list.body.find(x => x.metrics.seconds === 12 && x.metrics.minutes === 0)._id;
     const inv = await api('PATCH', `/api/results/${activeId}/invalidate`, { token: adminToken, body: { note: 'DQ' } });
     assert.strictEqual(inv.status, 200);
     const lb = await api('GET', '/api/leaderboard/speedcube');
-    assert.strictEqual(lb.body.rows[0].metrics.timeSeconds, 18.5); // promoted next best
+    assert.strictEqual(lb.body.rows[0].columns[0].value, '18.500s'); // promoted next best
   });
 
   await test('participation history reflects Speed Cube participated, others not (§7)', async () => {

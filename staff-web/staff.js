@@ -19,6 +19,38 @@ const store = {
 
 function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
 
+// A short "(0–59)", "(max 3)", "(min 88)" hint shown next to a metric field.
+function rangeHint(f) {
+  if (f.min != null && f.max != null) return `(${f.min}\u2013${f.max})`;
+  if (f.max != null) return `(max ${f.max})`;
+  if (f.min != null && f.min > 0) return `(min ${f.min})`;
+  return '';
+}
+// One <input> for a metric field, carrying its numeric constraints (§17).
+function metricInputHtml(f) {
+  const step = f.integer ? '1' : (f.decimals ? (1 / Math.pow(10, f.decimals)) : 'any');
+  const attrs = [
+    `id="m_${f.key}"`, 'type="number"', `step="${step}"`, 'inputmode="decimal"',
+    f.min != null ? `min="${f.min}"` : '',
+    f.max != null ? `max="${f.max}"` : ''
+  ].filter(Boolean).join(' ');
+  const hint = rangeHint(f);
+  return `<div class="field">
+      <label for="m_${f.key}">${esc(f.label)}${hint ? ` <span class="muted">${hint}</span>` : ''}</label>
+      <input ${attrs}>
+    </div>`;
+}
+// Validate a typed value against a field; returns an error string or null.
+function metricError(f, raw) {
+  if (raw === '' || raw == null) return `${f.label} is required.`;
+  const v = Number(raw);
+  if (Number.isNaN(v)) return `${f.label} must be a number.`;
+  if (f.integer && !Number.isInteger(v)) return `${f.label} must be a whole number.`;
+  if (f.min != null && v < f.min) return `${f.label} cannot be below ${f.min}.`;
+  if (f.max != null && v > f.max) return `${f.label} cannot exceed ${f.max}.`;
+  return null;
+}
+
 async function authedFetch(path, options = {}) {
   const res = await fetch(`${API}${path}`, {
     ...options,
@@ -231,11 +263,7 @@ if (consoleRoot) {
     warn.hidden = true; document.getElementById('recordMsg').textContent = '';
     if (!c) { fieldsBox.innerHTML = ''; saveBtn.disabled = true; return; }
 
-    fieldsBox.innerHTML = c.fields.map(f => `
-      <div class="field">
-        <label for="m_${f.key}">${esc(f.label)}</label>
-        <input id="m_${f.key}" type="number" step="any" inputmode="decimal">
-      </div>`).join('');
+    fieldsBox.innerHTML = c.fields.map(metricInputHtml).join('');
     saveBtn.disabled = false;
 
     // Warn if already participated, and show current best (§7, §9).
@@ -258,7 +286,8 @@ if (consoleRoot) {
     const metrics = {};
     for (const f of c.fields) {
       const raw = document.getElementById(`m_${f.key}`).value;
-      if (raw === '') { msg.textContent = `${f.label} is required.`; msg.className = 'form-msg err'; return; }
+      const err = metricError(f, raw);
+      if (err) { msg.textContent = err; msg.className = 'form-msg err'; return; }
       metrics[f.key] = Number(raw);
     }
 

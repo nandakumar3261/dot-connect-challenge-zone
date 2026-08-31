@@ -1,7 +1,8 @@
 const express = require('express');
+const QRCode = require('qrcode');
 const Student = require('../models/Student');
 const Result = require('../models/Result');
-const { CHALLENGE_KEYS, CHALLENGES, GENDERS, summariseMetrics, formatPrimaryMetric } = require('../challengeConfig');
+const { CHALLENGE_KEYS, CHALLENGES, GENDERS, summariseMetrics, formatColumns, formatPrimaryMetric } = require('../challengeConfig');
 const { rankTop } = require('../lib/ranking');
 
 const router = express.Router();
@@ -10,43 +11,45 @@ const router = express.Router();
 
 // ---------------------------------------------------------------------------
 // GET /api/config  — challenge metadata so the frontend renders generically.
-// (keys, names, icons, fields, units, primary field, provisional flags)
+// Sends the raw input fields (with limits, for the record form) AND the display
+// columns + a plain-English "hint" for the "what's this score?" icon.
 // ---------------------------------------------------------------------------
 router.get('/config', (req, res) => {
   const challenges = CHALLENGE_KEYS.map(key => {
     const c = CHALLENGES[key];
     return {
       key: c.key, name: c.name, icon: c.icon,
-      fields: c.fields.map(f => ({ key: f.key, label: f.label, unit: f.unit })),
-      primaryField: c.primaryField,
-      primaryUnit: (c.fields.find(f => f.key === c.primaryField) || {}).unit || '',
+      fields: c.fields.map(f => ({
+        key: f.key, label: f.label, unit: f.unit,
+        min: f.min, max: f.max, integer: !!f.integer, decimals: f.decimals || 0
+      })),
+      columns: c.columns.map(col => ({ label: col.label, primary: !!col.primary })),
+      hint: c.hint,
       provisional: c.provisional
     };
   });
   res.json({ challenges, genders: GENDERS });
 });
 
-// Minimal public row: rank, name, identifier, primary score only (§11).
-function minimalRow(challengeKey, r) {
-  const cfg = CHALLENGES[challengeKey];
-  const composite = typeof cfg.formatPrimary === 'function';
-  return {
-    rank: r.rank,
-    name: r.name,
-    identifier: r.rollNumber || r.dotId,
-    score: composite ? formatPrimaryMetric(challengeKey, r.metrics) : r.metrics[cfg.primaryField],
-    unit: composite ? '' : (cfg.fields.find(f => f.key === cfg.primaryField) || {}).unit || ''
-  };
-}
-
-async function activeRankedTop(challengeKey, limit = 10) {
+async function activeRankedTop(challengeKey, limit) {
   const rows = await Result.find({ challenge: challengeKey, status: 'active' }).lean();
   return rankTop(challengeKey, rows, limit);
 }
 
+// Minimal public row for the All Challenges board: rank, name, roll/ID, score,
+// and the volunteer who recorded it (§8, §11).
+function minimalRow(challengeKey, r) {
+  return {
+    rank: r.rank,
+    name: r.name,
+    identifier: r.rollNumber || r.dotId,
+    score: formatPrimaryMetric(challengeKey, r.metrics),
+    recordedBy: r.recordedBy || ''
+  };
+}
+
 // ---------------------------------------------------------------------------
 // GET /api/leaderboard  — All Challenges view: Top 10 of EACH of the four (§11).
-// The four boards are independent; there is no combined ranking (§14).
 // ---------------------------------------------------------------------------
 router.get('/leaderboard', async (req, res) => {
   try {
@@ -63,15 +66,16 @@ router.get('/leaderboard', async (req, res) => {
 
 // ---------------------------------------------------------------------------
 // GET /api/leaderboard/:challenge  — detailed board for one challenge (§12).
-// Includes academic details + full performance + record date/time + who
-// recorded it. Never includes mobile numbers.
+// Full academic details + formatted score columns + record time + who recorded
+// it. Returns up to 200 rows so the page can paginate client-side (§2).
+// Never includes mobile numbers.
 // ---------------------------------------------------------------------------
 router.get('/leaderboard/:challenge', async (req, res) => {
   try {
     const key = req.params.challenge;
     if (!CHALLENGES[key]) return res.status(404).json({ error: 'Unknown challenge.' });
 
-    const top = await activeRankedTop(key, 50);
+    const top = await activeRankedTop(key, 200);
     const rows = top.map(r => ({
       rank: r.rank,
       name: r.name,
@@ -80,7 +84,7 @@ router.get('/leaderboard/:challenge', async (req, res) => {
       rollNumber: r.rollNumber || '',
       branch: r.branch,
       section: r.section,
-      metrics: r.metrics,
+      columns: formatColumns(key, r.metrics),           // [{label,value}] formatted
       summary: summariseMetrics(key, r.metrics),
       recordedAt: r.createdAt,
       recordedBy: r.recordedBy || ''
@@ -90,13 +94,33 @@ router.get('/leaderboard/:challenge', async (req, res) => {
     res.json({
       challenge: {
         key: cfg.key, name: cfg.name, icon: cfg.icon,
-        fields: cfg.fields.map(f => ({ key: f.key, label: f.label, unit: f.unit })),
+        columns: cfg.columns.map(col => ({ label: col.label })),
+        hint: cfg.hint,
         provisional: cfg.provisional
       },
       rows
     });
   } catch (err) {
     res.status(500).json({ error: 'Could not load detailed leaderboard.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/qr?data=<url>  — SVG QR code for the leaderboard URL (§15, feature).
+// The frontend passes its own origin so the QR always points at wherever the
+// board is being served (localhost while testing, the LAN IP on event day).
+// ---------------------------------------------------------------------------
+router.get('/qr', async (req, res) => {
+  try {
+    const data = String(req.query.data || '').slice(0, 512);
+    if (!data) return res.status(400).json({ error: 'Missing data.' });
+    const svg = await QRCode.toString(data, {
+      type: 'svg', errorCorrectionLevel: 'M', margin: 1, width: 220,
+      color: { dark: '#0b0d12', light: '#ffffff' }
+    });
+    res.type('image/svg+xml').set('Cache-Control', 'public, max-age=300').send(svg);
+  } catch (err) {
+    res.status(500).json({ error: 'Could not generate QR code.' });
   }
 });
 
@@ -120,10 +144,9 @@ router.get('/stats', async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// POST /api/public-register  — STUDENT SELF-REGISTRATION (new public page,
-// public-web/register.html). No sign-in required. Same validation as the
-// staff console's register form (§4, §6); duplicate roll numbers rejected
-// (§4, §17). If no rollNumber is given, a DoTT Connect ID is auto-assigned.
+// POST /api/public-register  — STUDENT SELF-REGISTRATION (public-web/register.html).
+// No sign-in. Same validation as the staff console (§4, §6); duplicate roll
+// numbers rejected (§4, §17). No rollNumber -> a DoTT Connect ID is auto-assigned.
 // ---------------------------------------------------------------------------
 router.post('/public-register', async (req, res) => {
   try {
@@ -153,11 +176,7 @@ router.post('/public-register', async (req, res) => {
       registeredBy: 'self-registration'
     });
 
-    res.status(201).json({
-      name: student.name,
-      dotId: student.dotId,
-      rollNumber: student.rollNumber || ''
-    });
+    res.status(201).json({ name: student.name, dotId: student.dotId, rollNumber: student.rollNumber || '' });
   } catch (err) {
     if (err.code === 11000) {
       return res.status(409).json({ error: 'Duplicate student (roll number or DoTT ID already exists).' });

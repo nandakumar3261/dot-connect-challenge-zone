@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-default-theme="dark">
 <head>
+<script>(function(){try{var t=localStorage.getItem('dcz_theme')||document.documentElement.getAttribute('data-default-theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DoTT Connect — Staff Sign in</title>
@@ -10,6 +11,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body class="signin-page">
+  <button id="themeToggle" class="theme-toggle theme-toggle-fixed" title="Toggle light / dark" aria-label="Toggle light or dark mode">🌙</button>
   <main class="signin-wrap">
     <form id="loginForm" class="signin-card">
       <div class="signin-logo">
@@ -43,6 +45,7 @@
     </form>
     <p class="signin-copyright">© 2026 DoTT Connect. Authorized access only.</p>
   </main>
+  <script src="theme.js"></script>
   <script src="staff.js"></script>
 </body>
 </html>

@@ -196,11 +196,19 @@ function openCorrectModal(id, challengeKey, metrics) {
       <h3>Correct result</h3>
       <p class="muted">${esc(c.name)} — update the recorded values.</p>
       <div class="rec-fields">
-        ${c.fields.map(f => `
-          <div class="field">
-            <label>${esc(f.label)}</label>
-            <input type="number" step="any" data-key="${f.key}" value="${esc(metrics[f.key] ?? '')}">
-          </div>`).join('')}
+        ${c.fields.map(f => {
+          const step = f.integer ? '1' : (f.decimals ? (1 / Math.pow(10, f.decimals)) : 'any');
+          const hint = (f.min != null && f.max != null) ? `(${f.min}\u2013${f.max})`
+                     : (f.max != null) ? `(max ${f.max})`
+                     : (f.min != null && f.min > 0) ? `(min ${f.min})` : '';
+          const attrs = [`type="number"`, `step="${step}"`, `data-key="${f.key}"`,
+            f.min != null ? `min="${f.min}"` : '', f.max != null ? `max="${f.max}"` : '',
+            `value="${esc(metrics[f.key] ?? '')}"`].filter(Boolean).join(' ');
+          return `<div class="field">
+            <label>${esc(f.label)}${hint ? ` <span class="muted">${hint}</span>` : ''}</label>
+            <input ${attrs}>
+          </div>`;
+        }).join('')}
       </div>
       <div class="modal-actions">
         <button class="btn btn-ghost" data-x="cancel">Cancel</button>
@@ -215,8 +223,15 @@ function openCorrectModal(id, challengeKey, metrics) {
     const msg = wrap.querySelector('[data-msg]'); msg.textContent = ''; msg.className = 'form-msg';
     const newMetrics = {};
     for (const inp of wrap.querySelectorAll('input[data-key]')) {
-      if (inp.value === '') { msg.textContent = 'All fields are required.'; msg.className = 'form-msg err'; return; }
-      newMetrics[inp.dataset.key] = Number(inp.value);
+      const f = c.fields.find(x => x.key === inp.dataset.key) || {};
+      const raw = inp.value;
+      if (raw === '') { msg.textContent = `${f.label || 'All fields'} is required.`; msg.className = 'form-msg err'; return; }
+      const v = Number(raw);
+      if (Number.isNaN(v)) { msg.textContent = `${f.label} must be a number.`; msg.className = 'form-msg err'; return; }
+      if (f.integer && !Number.isInteger(v)) { msg.textContent = `${f.label} must be a whole number.`; msg.className = 'form-msg err'; return; }
+      if (f.min != null && v < f.min) { msg.textContent = `${f.label} cannot be below ${f.min}.`; msg.className = 'form-msg err'; return; }
+      if (f.max != null && v > f.max) { msg.textContent = `${f.label} cannot exceed ${f.max}.`; msg.className = 'form-msg err'; return; }
+      newMetrics[inp.dataset.key] = v;
     }
     const res = await authedFetch(`/results/${id}`, { method: 'PUT', body: JSON.stringify({ metrics: newMetrics }) });
     const data = await res.json();

@@ -66,7 +66,7 @@ body {
   display: inline-flex; align-items: center; gap: 7px; transition: all .15s;
 }
 .tab:hover { color: var(--text); border-color: var(--text-dim); }
-.tab[aria-selected="true"] { color: #0a0d18; background: var(--text); border-color: var(--text); }
+.tab[aria-selected="true"] { color: var(--bg); background: var(--text); border-color: var(--text); }
 .tab[data-key="all"][aria-selected="true"] { background: linear-gradient(90deg, var(--speedcube), var(--chess)); border: none; }
 
 /* ---------- board layout ---------- */
@@ -75,11 +75,9 @@ body {
 
 .grid-all {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
 }
-@media (max-width: 1400px) { .grid-all { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 640px) { .grid-all { grid-template-columns: 1fr; } }
 
 .panel {
   background: var(--surface);
@@ -109,7 +107,7 @@ thead th {
   font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
   padding: 6px 18px; border-bottom: 1px solid var(--line);
 }
-tbody td { padding: 9px 18px; border-bottom: 1px solid rgba(39,46,77,0.5); font-size: 0.92rem; }
+tbody td { padding: 9px 18px; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
 tbody tr:last-child td { border-bottom: none; }
 
 .rank { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--text-dim); width: 2.5em; }
@@ -188,3 +186,111 @@ input::placeholder { color: var(--text-dim); }
 .form-msg { font-size: 0.85rem; min-height: 1.1em; margin: 14px 0 0; }
 .form-msg.ok { color: var(--typing); }
 .form-msg.err { color: var(--debug); }
+
+
+/* ============================================================================
+   LIGHT THEME (toggle) — overrides the dark defaults in :root above.
+   Challenge accents are darkened a touch so they read on a white surface.
+   ============================================================================ */
+:root[data-theme="light"] {
+  --bg: #f4f5fb;
+  --surface: #ffffff;
+  --surface-2: #eef1f8;
+  --line: #e2e5f0;
+  --text: #171c30;
+  --text-dim: #5f677f;
+  --gold: #b7791f;
+
+  --speedcube: #c67c00;
+  --chess: #7c3fd6;
+  --typing: #0e9f6e;
+  --debug: #d63a52;
+}
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(1000px 520px at 85% -10%, #e6e9ff 0%, transparent 55%),
+    radial-gradient(820px 520px at -10% 110%, #f1e8ff 0%, transparent 55%),
+    var(--bg);
+}
+:root[data-theme="light"] .brand-dot { box-shadow: 0 0 18px rgba(124,63,214,0.35); }
+
+/* ---------- theme toggle button ---------- */
+.theme-toggle {
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  width: 40px; height: 40px; border-radius: 10px; cursor: pointer; font-size: 1.05rem;
+  display: inline-flex; align-items: center; justify-content: center; transition: all .15s;
+}
+.theme-toggle:hover { border-color: var(--text-dim); }
+
+/* ---------- "what's this score?" info button + popover (§3) ---------- */
+.info-btn {
+  border: 1px solid var(--line); background: var(--surface); color: var(--text-dim);
+  width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 0.78rem;
+  display: inline-flex; align-items: center; justify-content: center; margin-left: 2px; padding: 0;
+  flex: none; transition: all .15s;
+}
+.info-btn:hover { color: var(--accent); border-color: var(--accent); }
+.info-pop {
+  position: absolute; z-index: 100; max-width: 280px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--line);
+  border-radius: 10px; padding: 11px 13px; font-size: 0.82rem; line-height: 1.45;
+  box-shadow: 0 12px 34px rgba(0,0,0,0.35);
+}
+
+/* ---------- header QR (§1: moved between brand and Register button) ---------- */
+.topbar-qr { display: flex; align-items: center; gap: 10px; }
+.topbar-qr .qr-img-sm {
+  width: 46px; height: 46px; background: #fff; border-radius: 8px; padding: 4px;
+  display: block;
+}
+.topbar-qr .qr-label {
+  display: flex; flex-direction: column; line-height: 1.2;
+  color: var(--text-dim); font-size: 0.7rem; max-width: 120px;
+}
+@media (max-width: 760px) { .topbar-qr .qr-label { display: none; } }
+@media (max-width: 480px) { .topbar-qr { display: none; } }
+
+/* ---------- board search (§4) ---------- */
+.board-toolbar { padding: 14px clamp(12px, 1.5vw, 20px) 0; }
+.search-box {
+  display: flex; align-items: center; gap: 8px; max-width: 420px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  padding: 4px 4px 4px 14px;
+}
+.search-box svg { flex: none; opacity: 0.6; }
+.search-box input {
+  flex: 1; background: transparent; border: none; color: var(--text);
+  font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 9px 0; outline: none;
+}
+.search-box input::placeholder { color: var(--text-dim); }
+.search-box button {
+  border: none; background: var(--surface-2); color: var(--text);
+  font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 0.82rem;
+  padding: 9px 14px; border-radius: 9px; cursor: pointer; white-space: nowrap;
+}
+.search-box button:hover { color: var(--gold); }
+.search-empty { color: var(--text-dim); padding: 4px clamp(12px, 1.5vw, 20px) 0; font-size: 0.88rem; }
+
+/* ---------- volunteer ("By") column ---------- */
+.by { color: var(--text-dim); font-size: 0.8rem; white-space: nowrap; }
+
+/* ---------- pagination (§2) ---------- */
+.pager {
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+  padding: 14px 18px 18px;
+}
+.pg-btn {
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 0.85rem;
+  padding: 8px 16px; border-radius: 999px; cursor: pointer; transition: all .15s;
+}
+.pg-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.pg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pg-info { color: var(--text-dim); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+
+/* Detailed view has more columns now (branch/sec, score cols, recorded, by) —
+   let it scroll sideways on narrow phones instead of clipping (§2/§12). */
+@media (max-width: 720px) {
+  .panel.detail { overflow-x: auto; }
+  .detail table { min-width: 640px; }
+}
