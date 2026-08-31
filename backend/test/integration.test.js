@@ -189,7 +189,7 @@ async function test(name, fn) {
     const r = await api('GET', '/api/leaderboard');
     assert.strictEqual(r.status, 200);
     const cube = r.body.boards.speedcube;
-    assert.strictEqual(cube[0].score, '12.000s');
+    assert.strictEqual(cube[0].columns[0].value, '12.000s');
     assert.ok(!JSON.stringify(r.body).includes('9876543210'));
   });
 

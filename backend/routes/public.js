@@ -2,7 +2,7 @@ const express = require('express');
 const QRCode = require('qrcode');
 const Student = require('../models/Student');
 const Result = require('../models/Result');
-const { CHALLENGE_KEYS, CHALLENGES, GENDERS, summariseMetrics, formatColumns, formatPrimaryMetric } = require('../challengeConfig');
+const { CHALLENGE_KEYS, CHALLENGES, GENDERS, summariseMetrics, formatColumns } = require('../challengeConfig');
 const { rankTop } = require('../lib/ranking');
 
 const router = express.Router();
@@ -36,15 +36,15 @@ async function activeRankedTop(challengeKey, limit) {
   return rankTop(challengeKey, rows, limit);
 }
 
-// Minimal public row for the All Challenges board: rank, name, roll/ID, score,
-// and the volunteer who recorded it (§8, §11).
+// Row for the All Challenges board: rank, name, roll/ID, and each of that
+// challenge's own display columns (§8) — e.g. Chess shows Puzzles, Mistakes,
+// and Time; Speed Cube and Debug show just Time; Typing shows WPM + Accuracy.
 function minimalRow(challengeKey, r) {
   return {
     rank: r.rank,
     name: r.name,
     identifier: r.rollNumber || r.dotId,
-    score: formatPrimaryMetric(challengeKey, r.metrics),
-    recordedBy: r.recordedBy || ''
+    columns: formatColumns(challengeKey, r.metrics)
   };
 }
 

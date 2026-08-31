@@ -120,16 +120,19 @@ async function renderAll() {
 
   const panels = config.challenges.map(c => {
     const rows = data.boards[c.key] || [];
+    const colHeads = c.columns.map(col => `<th style="text-align:right">${esc(col.label)}</th>`).join('');
     const body = rows.length
-      ? rows.map(r => `
+      ? rows.map(r => {
+          const cells = r.columns.map(col => `<td class="score">${esc(col.value)}</td>`).join('');
+          return `
           <tr class="${r.rank === 1 ? 'top1' : ''}">
             <td class="rank">${r.rank}</td>
             <td class="name">${esc(r.name)}</td>
             <td class="ident">${esc(r.identifier)}</td>
-            <td class="score">${esc(r.score)}</td>
-            <td class="by">${esc(r.recordedBy)}</td>
-          </tr>`).join('')
-      : `<tr class="empty"><td colspan="5">No results recorded yet.</td></tr>`;
+            ${cells}
+          </tr>`;
+        }).join('')
+      : `<tr class="empty"><td colspan="${3 + c.columns.length}">No results recorded yet.</td></tr>`;
 
     return `
       <section class="panel c-${c.key}">
@@ -140,7 +143,7 @@ async function renderAll() {
           <span class="panel-note">Top 10 · ${esc(RULE_NOTE[c.key] || '')}</span>
         </div>
         <table>
-          <thead><tr><th>#</th><th>Name</th><th>Roll / ID</th><th style="text-align:right">Score</th><th>By</th></tr></thead>
+          <thead><tr><th>#</th><th>Name</th><th>Roll / ID</th>${colHeads}</tr></thead>
           <tbody>${body}</tbody>
         </table>
       </section>`;

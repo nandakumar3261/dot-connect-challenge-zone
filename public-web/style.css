@@ -40,10 +40,9 @@ body {
   border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: 14px; }
-.brand-dot {
-  width: 20px; height: 20px; border-radius: 6px;
-  background: conic-gradient(from 210deg, var(--speedcube), var(--chess), var(--typing), var(--debug), var(--speedcube));
-  box-shadow: 0 0 24px rgba(185,139,255,0.5);
+.brand-icon {
+  width: 42px; height: 42px; object-fit: contain; flex: none;
+  filter: drop-shadow(0 0 16px rgba(185,139,255,0.45));
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
 .brand-name { font-family: 'Archivo', sans-serif; font-weight: 800; letter-spacing: 0.02em; font-size: clamp(1.1rem, 2vw, 1.5rem); }
@@ -212,7 +211,7 @@ input::placeholder { color: var(--text-dim); }
     radial-gradient(820px 520px at -10% 110%, #f1e8ff 0%, transparent 55%),
     var(--bg);
 }
-:root[data-theme="light"] .brand-dot { box-shadow: 0 0 18px rgba(124,63,214,0.35); }
+:root[data-theme="light"] .brand-icon { filter: drop-shadow(0 0 14px rgba(124,63,214,0.35)); }
 
 /* ---------- theme toggle button ---------- */
 .theme-toggle {
