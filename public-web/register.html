@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoTT Connect 2026 — Student Registration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span class="brand-text">
+        <span class="brand-name">DoTT&nbsp;Connect <b>2026</b></span>
+        <span class="brand-sub">Challenge Zone · Sept 1–12</span>
+      </span>
+    </div>
+    <div class="topbar-right">
+      <a href="index.html" class="btn btn-ghost">Leaderboard</a>
+    </div>
+  </header>
+
+  <main class="reg-main">
+    <p class="reg-intro">Register once to take part in any Challenge Zone event. If you already have a permanent roll number, enter it below — otherwise leave it blank and a temporary DoTT Connect ID will be assigned, which a volunteer can link to your roll number later.</p>
+
+    <div class="reg-card">
+      <h1>Student registration</h1>
+      <div class="reg-grid">
+        <div class="field"><label for="regName">Full name *</label><input id="regName" autocomplete="name"></div>
+        <div class="field"><label for="regMobile">Mobile *</label><input id="regMobile" inputmode="numeric" autocomplete="tel"></div>
+        <div class="field"><label for="regGender">Gender *</label><select id="regGender"></select></div>
+        <div class="field"><label for="regBranch">Branch *</label><input id="regBranch"></div>
+        <div class="field"><label for="regSection">Section *</label><input id="regSection"></div>
+        <div class="field"><label for="regRoll">Roll number <span class="muted">(optional)</span></label><input id="regRoll" placeholder="Auto-assigned if blank"></div>
+      </div>
+      <button id="registerBtn" class="btn btn-primary btn-block">Register</button>
+      <p id="registerMsg" class="form-msg"></p>
+    </div>
+  </main>
+
+  <script src="register.js"></script>
+</body>
+</html>

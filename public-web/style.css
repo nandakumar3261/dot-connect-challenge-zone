@@ -1,5 +1,5 @@
 /* ============================================================================
-   DoT Connect 2026 — public leaderboard.
+   DoTT Connect 2026 — public leaderboard.
    Built for a large event TV first (§11, §19), and to stay readable on a phone
    reached via the QR code (§15). Each of the four challenges owns an accent.
    ============================================================================ */
@@ -75,10 +75,11 @@ body {
 
 .grid-all {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 }
-@media (max-width: 900px) { .grid-all { grid-template-columns: 1fr; } }
+@media (max-width: 1400px) { .grid-all { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .grid-all { grid-template-columns: 1fr; } }
 
 .panel {
   background: var(--surface);
@@ -132,7 +133,7 @@ tr.top1 .name { color: var(--gold); font-weight: 600; }
 .detail .panel-head { padding: 20px 22px 14px; }
 .detail .panel-title { font-size: 1.5rem; }
 .detail tbody td { padding: 11px 18px; }
-.detail .meta { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; white-space: nowrap; }
+.detail .meta { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; white-space: nowrap; text-align: right; }
 
 /* On the TV, larger everything */
 @media (min-width: 1600px) {
@@ -145,3 +146,45 @@ tr.top1 .name { color: var(--gold); font-weight: 600; }
   padding: 22px clamp(16px, 4vw, 48px) 40px;
   color: var(--text-dim); font-size: 0.8rem; max-width: 900px;
 }
+
+/* ---------- topbar right side (clock + register link) ---------- */
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+
+/* ---------- buttons (shared by leaderboard + register page) ---------- */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--line); background: var(--surface);
+  color: var(--text); font-family: 'Archivo', sans-serif; font-weight: 700;
+  font-size: 0.85rem; padding: 9px 16px; border-radius: 10px;
+  cursor: pointer; text-decoration: none; transition: all .15s;
+}
+.btn:hover { border-color: var(--text-dim); }
+.btn-primary { background: var(--typing); border-color: var(--typing); color: #06251c; }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-block { width: 100%; justify-content: center; margin-top: 6px; }
+.btn-ghost { background: transparent; }
+
+/* ---------- registration page ---------- */
+.reg-main { padding: 28px clamp(16px, 4vw, 48px) 48px; max-width: 640px; margin: 0 auto; }
+.reg-intro { color: var(--text-dim); margin-bottom: 22px; line-height: 1.5; }
+.reg-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 24px clamp(18px, 4vw, 30px);
+}
+.reg-card h1 { font-family: 'Archivo', sans-serif; font-size: 1.4rem; margin: 0 0 6px; }
+.reg-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px 14px; margin: 18px 0 4px;
+}
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.field label { font-size: 0.8rem; color: var(--text-dim); }
+input, select {
+  font: inherit; color: var(--text); background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px;
+}
+input:focus, select:focus { outline: none; border-color: var(--typing); }
+input::placeholder { color: var(--text-dim); }
+.form-msg { font-size: 0.85rem; min-height: 1.1em; margin: 14px 0 0; }
+.form-msg.ok { color: var(--typing); }
+.form-msg.err { color: var(--debug); }

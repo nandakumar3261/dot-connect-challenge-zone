@@ -1,7 +1,7 @@
 const express = require('express');
 const Student = require('../models/Student');
 const Result = require('../models/Result');
-const { CHALLENGE_KEYS, CHALLENGES, GENDERS, summariseMetrics } = require('../challengeConfig');
+const { CHALLENGE_KEYS, CHALLENGES, GENDERS, summariseMetrics, formatPrimaryMetric } = require('../challengeConfig');
 const { rankTop } = require('../lib/ranking');
 
 const router = express.Router();
@@ -29,12 +29,13 @@ router.get('/config', (req, res) => {
 // Minimal public row: rank, name, identifier, primary score only (§11).
 function minimalRow(challengeKey, r) {
   const cfg = CHALLENGES[challengeKey];
+  const composite = typeof cfg.formatPrimary === 'function';
   return {
     rank: r.rank,
     name: r.name,
     identifier: r.rollNumber || r.dotId,
-    score: r.metrics[cfg.primaryField],
-    unit: (cfg.fields.find(f => f.key === cfg.primaryField) || {}).unit || ''
+    score: composite ? formatPrimaryMetric(challengeKey, r.metrics) : r.metrics[cfg.primaryField],
+    unit: composite ? '' : (cfg.fields.find(f => f.key === cfg.primaryField) || {}).unit || ''
   };
 }
 
@@ -115,6 +116,53 @@ router.get('/stats', async (req, res) => {
     res.json({ totalStudents, participants });
   } catch (err) {
     res.status(500).json({ error: 'Could not load stats.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/public-register  — STUDENT SELF-REGISTRATION (new public page,
+// public-web/register.html). No sign-in required. Same validation as the
+// staff console's register form (§4, §6); duplicate roll numbers rejected
+// (§4, §17). If no rollNumber is given, a DoTT Connect ID is auto-assigned.
+// ---------------------------------------------------------------------------
+router.post('/public-register', async (req, res) => {
+  try {
+    const { name, mobile, gender, branch, section } = req.body;
+    let { rollNumber } = req.body;
+
+    if (!name || !mobile || !gender || !branch || !section) {
+      return res.status(400).json({ error: 'Name, mobile, gender, branch and section are required.' });
+    }
+    if (!GENDERS.includes(gender)) {
+      return res.status(400).json({ error: `Gender must be one of: ${GENDERS.join(', ')}` });
+    }
+    rollNumber = rollNumber && String(rollNumber).trim() ? String(rollNumber).trim() : undefined;
+
+    if (rollNumber) {
+      const clash = await Student.findOne({ rollNumber });
+      if (clash) return res.status(409).json({ error: 'A student with that roll number already exists.' });
+    }
+
+    const student = await Student.create({
+      name: String(name).trim(),
+      mobile: String(mobile).trim(),
+      gender,
+      branch: String(branch).trim(),
+      section: String(section).trim(),
+      rollNumber,
+      registeredBy: 'self-registration'
+    });
+
+    res.status(201).json({
+      name: student.name,
+      dotId: student.dotId,
+      rollNumber: student.rollNumber || ''
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({ error: 'Duplicate student (roll number or DoTT ID already exists).' });
+    }
+    res.status(500).json({ error: 'Could not register. Please see a volunteer at the help desk.' });
   }
 });
 

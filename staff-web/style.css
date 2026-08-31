@@ -1,5 +1,5 @@
 /* ============================================================================
-   DoT Connect 2026 — staff console + admin dashboard.
+   DoTT Connect 2026 — staff console + admin dashboard.
    Light, high-contrast, purpose-fit for a busy stall on a laptop/tablet (§19).
    Deliberately distinct from the dark TV board: this is the tool, not the show.
    ============================================================================ */
@@ -106,10 +106,14 @@ label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-
 
 /* ---------- console layout ---------- */
 .console {
-  max-width: 1100px; margin: 0 auto; padding: 22px clamp(14px, 3vw, 32px) 60px;
+  width: 100%; padding: 22px clamp(14px, 3vw, 32px) 60px;
   display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start;
 }
 .span-2 { grid-column: 1 / -1; }
+/* Let each tab's .view wrapper pass its cards straight through to the grid,
+   so Post Result / Register Student still lay out exactly as before. */
+.console > .view { display: contents; }
+.console > .view[hidden] { display: none; }
 @media (max-width: 820px) { .console { grid-template-columns: 1fr; } }
 
 .card {
@@ -169,6 +173,21 @@ label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-
 .reg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px 14px; margin-bottom: 6px; }
 .reg-grid .field label { margin-top: 4px; }
 
+.register-panel { max-width: 720px; margin: 0 auto; }
+.reg-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
+.reg-icon {
+  flex: none; width: 44px; height: 44px; border-radius: 12px;
+  background: var(--accent); color: #fff; font-size: 1.4rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.reg-header h2 { margin: 0 0 3px; font-size: 1.2rem; }
+.reg-header .muted { margin: 0; }
+.reg-groupTitle {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-dim); margin: 20px 0 8px; padding-top: 14px; border-top: 1px solid var(--line);
+}
+.register-panel .reg-groupTitle:first-of-type { border-top: none; padding-top: 0; margin-top: 4px; }
+
 /* ---------- admin ---------- */
 .admin-tabs {
   display: flex; gap: 4px; background: var(--surface); border-bottom: 1px solid var(--line);
@@ -180,7 +199,7 @@ label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-
   padding: 14px 14px; font-size: 0.9rem; white-space: nowrap;
 }
 .atab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
-.admin { max-width: 1200px; margin: 0 auto; padding: 22px clamp(14px, 3vw, 32px) 60px; }
+.admin { width: 100%; padding: 22px clamp(14px, 3vw, 32px) 60px; }
 
 .stats-bar {
   display: flex; flex-wrap: wrap; gap: 22px; padding: 14px 18px; margin-bottom: 18px;

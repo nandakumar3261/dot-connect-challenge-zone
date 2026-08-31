@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// A tiny sequence store so DoT Connect IDs (§4) are unique even under
+// A tiny sequence store so DoTT Connect IDs (§4) are unique even under
 // concurrent registrations from multiple volunteer laptops. One document per
 // named counter; `$inc` inside findOneAndUpdate is atomic in MongoDB.
 const counterSchema = new mongoose.Schema({

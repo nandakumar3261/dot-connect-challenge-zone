@@ -3,7 +3,7 @@ const Counter = require('./Counter');
 const { EVENT_ID_PREFIX, GENDERS } = require('../challengeConfig');
 
 // Student profile (§4, §5). Every participant has EXACTLY ONE profile.
-//   - dotId: required, unique, system-generated (e.g. DOT26-0001). This is an
+//   - dotId: required, unique, system-generated (e.g. DOTT26-0001). This is an
 //     event identifier, NOT a university roll number.
 //   - rollNumber: the permanent university roll number. Optional at first;
 //     unique when present. Linked in later by an admin (§4) — a new record is
@@ -30,12 +30,12 @@ const studentSchema = new mongoose.Schema({
   registeredBy: { type: String }
 }, { timestamps: true });
 
-// Auto-assign a DoT Connect ID on first save if one wasn't supplied.
+// Auto-assign a DoTT Connect ID on first save if one wasn't supplied.
 studentSchema.pre('validate', async function assignDotId(next) {
   try {
     if (!this.dotId) {
       const n = await Counter.next('dotId');
-      // DOT26-0001, DOT26-0002, ... (§4 example format).
+      // DOTT26-0001, DOTT26-0002, ... (§4 example format).
       this.dotId = `${EVENT_ID_PREFIX}-${String(n).padStart(4, '0')}`;
     }
     next();

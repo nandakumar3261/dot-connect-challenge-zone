@@ -1,7 +1,7 @@
-# DoT Connect 2026 — Challenge Zone
+# DoTT Connect 2026 — Challenge Zone
 
 A student **registration, result-recording, permission, and leaderboard** system for the
-DoT Connect 2026 Challenge Zone (Sept 1–12, 2026). It does **not** run the challenges
+DoTT Connect 2026 Challenge Zone (Sept 1–12, 2026). It does **not** run the challenges
 themselves — volunteers evaluate participants on the agreed setup/platform and enter the
 official result here.
 
@@ -22,12 +22,13 @@ cp .env.example .env          # then edit JWT_SECRET + seed admin values
 npm run seed-admin            # creates the first administrator account
 npm start
 ```
-You'll see `DoT Connect Challenge Zone running on http://localhost:5000`.
+You'll see `DoTT Connect Challenge Zone running on http://localhost:5000`.
 
 Run the logic tests any time with `npm test`.
 
 ## 3. Open in a browser
 - **Public leaderboard (TV / QR target):** http://localhost:5000/
+- **Student registration (self-service, new):** http://localhost:5000/register.html
 - **Staff sign-in (volunteers & admins):** http://localhost:5000/staff/login.html
 
 Volunteers and administrators use the same sign-in; each lands on the console for their role.
@@ -42,23 +43,32 @@ Volunteers and administrators use the same sign-in; each lands on the console fo
 - **Public / Student viewer** — the leaderboard only. No private contact details are ever shown.
 
 ## 5. How a volunteer works a stall (§6, §7, §8, §9)
-1. **Search** a student by permanent roll number, DoT Connect ID, or name.
+The console has two separate tabs — **Post Result** and **Register Student** — so the two
+tasks are never mixed on the same screen.
+1. **Search** (Post Result tab) a student by permanent roll number, DoTT Connect ID, or name.
 2. The profile shows basic details + a **participation history** across all four challenges,
    with the current best per challenge.
-3. **Register** if there's no profile yet. If the student has no permanent roll number, a
-   **DoT Connect ID** (e.g. `DOT26-0001`) is generated automatically. When the university
-   later assigns a roll number, an admin **links** it to the same profile — no new record.
+3. **Register** (its own tab) if there's no profile yet. Students can also self-register ahead
+   of time at the public **registration page** (`/register.html`) — no sign-in needed. If the
+   student has no permanent roll number, a **DoTT Connect ID** (e.g. `DOTT26-0001`) is
+   generated automatically. When the university later assigns a roll number, an admin
+   **links** it to the same profile — no new record.
 4. **Record**: pick a challenge (only your authorised ones appear), enter the official
    result, save. If the student already has a result, you're **warned** and shown their best.
    An inferior new result never replaces a superior one — the best result stays on the board.
 
-### What each challenge records (§8)
+### What each challenge records (§8, finalised per the Leaderboard & Ranking Rules doc)
 | Challenge | Fields recorded | Ranking (§13) |
 |---|---|---|
-| Speed Cube | official time (s) | lower time is better |
-| Chess Puzzle Rush | puzzles solved · time (s) · mistakes | more puzzles → *(tie-breaks provisional)* |
+| Speed Cube | official time, s + ms (e.g. 14.205) | lower time is better |
+| Chess Puzzle Rush | puzzles solved · mistakes · time (s) | more puzzles → fewer mistakes → faster time |
 | Keyboard Killers | WPM · accuracy % | higher WPM, accuracy tie-breaker |
-| Debug Challenge | provisional score | *(format & rule to be finalised)* |
+| Debug Challenge | time — seconds + milliseconds (not a score) | lower time is better *(format not yet finalised)* |
+
+Every board applies the **General Tie Rule**: students tied on every ranked field share the
+same rank, and the next distinct result's rank skips ahead accordingly (e.g. two students tied
+for Rank 5 are both shown as Rank 5, and the next student is Rank 7). Registration time,
+student ID, or any other arbitrary field is never used to force unique ranks.
 
 ## 6. Leaderboard (§11, §12, §15)
 - Opens on **All Challenges** by default: the **Top 10 of each** of the four challenges on one
@@ -80,24 +90,25 @@ Volunteers and administrators use the same sign-in; each lands on the console fo
 
 ## 8. Where things live / changing rules later
 All four challenges — their recorded fields, units, and ranking rules — are defined in **one
-file**: `backend/challengeConfig.js`. The Debug Challenge format and the Chess/Typing
-tie-breaks are marked *provisional* there (see the requirements' "Open Decisions", §21); when
-the organisers finalise them, edit that file only and the whole app — validation, ranking,
-leaderboards, the record form, and permission lists — follows.
+file**: `backend/challengeConfig.js`. Speed Cube, Chess, and Keyboard Killers now follow the
+finalised Leaderboard & Ranking Rules doc. Only the **Debug Challenge** format remains
+*provisional* (see the requirements' "Open Decisions", §21); when the organisers finalise it,
+edit that file only and the whole app — validation, ranking, leaderboards, the record form,
+and permission lists — follows.
 
 ## 9. Project layout
 ```
 backend/
   challengeConfig.js     # single source of truth: the 4 challenges + rules
   app.js / server.js     # express app + bootstrap (one port serves everything)
-  lib/ranking.js         # comparator + "best result" rule (§9, §13)
+  lib/ranking.js         # comparator + "best result" + tie-rank rule (§9, §13, §4)
   lib/mask.js            # mobile masking (§5, §15)
-  models/                # User, Student, Result, Counter (DoT ID sequence)
+  models/                # User, Student, Result, Counter (DoTT ID sequence)
   middleware/auth.js     # requireAuth / requireAdmin / per-challenge permission
   routes/                # auth, students, results, volunteers, public, exportData
   test/                  # logic.test.js (npm test) + integration.test.js (needs MongoDB)
-staff-web/               # sign-in, volunteer console, admin dashboard
-public-web/              # public leaderboard (TV + QR)
+staff-web/               # sign-in, volunteer console (Post Result / Register tabs), admin dashboard
+public-web/              # public leaderboard (TV + QR) + self-service student registration
 ```
 
 ## 10. Notes on scope (§20)

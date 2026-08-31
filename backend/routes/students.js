@@ -63,7 +63,7 @@ function publicStudent(student, role) {
 
 // ---------------------------------------------------------------------------
 // GET /api/students/search?q=...   (§6 SEARCH, §19)
-// Matches permanent roll number, DoT Connect ID, or name (partial, case-insensitive).
+// Matches permanent roll number, DoTT Connect ID, or name (partial, case-insensitive).
 // ---------------------------------------------------------------------------
 router.get('/search', async (req, res) => {
   try {
@@ -98,7 +98,7 @@ router.get('/:id', async (req, res) => {
 // ---------------------------------------------------------------------------
 // POST /api/students   — REGISTER (§4, §6). Any authorised volunteer may do this.
 // Body: { name, mobile, gender, branch, section, rollNumber? }
-// If no rollNumber is supplied, a DoT Connect ID is generated automatically.
+// If no rollNumber is supplied, a DoTT Connect ID is generated automatically.
 // Duplicate roll numbers are rejected (§4, §17).
 // ---------------------------------------------------------------------------
 router.post('/', async (req, res) => {
@@ -132,7 +132,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(publicStudent(student, req.user.role));
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(409).json({ error: 'Duplicate student (roll number or DoT ID already exists).' });
+      return res.status(409).json({ error: 'Duplicate student (roll number or DoTT ID already exists).' });
     }
     res.status(500).json({ error: 'Could not register student.' });
   }

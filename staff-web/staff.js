@@ -71,6 +71,16 @@ if (consoleRoot) {
   if (store.role === 'admin') document.getElementById('adminLink').hidden = false;
   document.getElementById('logoutBtn').addEventListener('click', () => { store.clear(); window.location.href = 'login.html'; });
 
+  // ---- tabs: Post Result / Register Student (kept separate, not shown together) ----
+  document.querySelectorAll('#consoleTabs .atab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#consoleTabs .atab').forEach(t => t.setAttribute('aria-selected', 'false'));
+      tab.setAttribute('aria-selected', 'true');
+      document.querySelectorAll('main.console > .view').forEach(v => v.hidden = true);
+      document.getElementById(`view-${tab.dataset.view}`).hidden = false;
+    });
+  });
+
   // Which challenges may this account record for?
   function myChallenges() {
     if (!config) return [];
@@ -102,12 +112,12 @@ if (consoleRoot) {
   async function doSearch() {
     const q = document.getElementById('searchInput').value.trim();
     const box = document.getElementById('searchResults');
-    if (!q) { box.innerHTML = '<p class="muted">Type a roll number, DoT ID, or name.</p>'; return; }
+    if (!q) { box.innerHTML = '<p class="muted">Type a roll number, DoTT ID, or name.</p>'; return; }
     box.innerHTML = '<p class="muted">Searching…</p>';
     try {
       const rows = await authedFetch(`/students/search?q=${encodeURIComponent(q)}`).then(r => r.json());
       if (!rows.length) {
-        box.innerHTML = '<p class="muted">No matching student. Register a new one below.</p>';
+        box.innerHTML = '<p class="muted">No matching student. Switch to the <b>Register Student</b> tab to add them.</p>';
         return;
       }
       box.innerHTML = rows.map(s => `
@@ -133,6 +143,7 @@ if (consoleRoot) {
       renderStudent(data.student, data.history);
       document.getElementById('studentCard').hidden = false;
       document.getElementById('recordCard').hidden = false;
+      document.getElementById('noStudentNote').hidden = true;
       resetRecordForm();
       document.getElementById('studentCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) { /* handled */ }
@@ -141,7 +152,7 @@ if (consoleRoot) {
   function renderStudent(s, history) {
     const item = (k, v, mono) => `<div class="sd-item"><span class="k">${k}</span><span class="v ${mono ? 'mono' : ''}">${esc(v || '—')}</span></div>`;
     document.getElementById('studentDetail').innerHTML =
-      item('Name', s.name) + item('DoT ID', s.dotId, true) + item('Roll No.', s.rollNumber, true) +
+      item('Name', s.name) + item('DoTT ID', s.dotId, true) + item('Roll No.', s.rollNumber, true) +
       item('Branch', s.branch) + item('Section', s.section) + item('Mobile', s.mobileMasked, true);
 
     const map = Object.fromEntries(config.challenges.map(c => [c.key, c]));
@@ -262,7 +273,8 @@ if (consoleRoot) {
       msg.className = 'form-msg ok';
       ['regName', 'regMobile', 'regBranch', 'regSection', 'regRoll'].forEach(id => document.getElementById(id).value = '');
       document.getElementById('regGender').value = '';
-      // Jump straight to recording for the new student.
+      // Switch to the Post Result tab and jump straight to recording for the new student.
+      document.querySelector('#consoleTabs .atab[data-view="post"]').click();
       selectStudent(data._id);
     } catch (err) { /* handled */ }
   });

@@ -41,13 +41,28 @@ function isBetter(challengeKey, candidateMetrics, currentMetrics) {
   return compareResults(challengeKey, candidateMetrics, currentMetrics) < 0;
 }
 
-// Sort a list of {metrics, ...} objects best-first and return the top N,
-// each tagged with a 1-based rank. Does not mutate the input array.
+// Sort a list of {metrics, ...} objects best-first and return the top N.
+// Ties (identical on every ranked field) share the same rank, and the next
+// distinct result's rank skips ahead accordingly — e.g. two students tied
+// for rank 5 are both shown as Rank 5, and the next student is Rank 7
+// (§4 General Tie Rule). Registration time, ID, or any other arbitrary field
+// is never used to force unique ranks.
 function rankTop(challengeKey, rows, limit = 10) {
   const sorted = [...rows].sort((x, y) =>
     compareResults(challengeKey, x.metrics, y.metrics)
   );
-  return sorted.slice(0, limit).map((row, i) => ({ rank: i + 1, ...row }));
+
+  const ranked = sorted.map((row, i) => {
+    const rank = (i === 0 || compareResults(challengeKey, row.metrics, sorted[i - 1].metrics) !== 0)
+      ? i + 1
+      : null; // filled in below from the previous row's rank
+    return { rank, ...row };
+  });
+  for (let i = 1; i < ranked.length; i++) {
+    if (ranked[i].rank === null) ranked[i].rank = ranked[i - 1].rank;
+  }
+
+  return ranked.slice(0, limit);
 }
 
 module.exports = { compareResults, isBetter, rankTop };

@@ -13,8 +13,8 @@
 //   §21 open decisions — Debug format + tie-breaks are marked `provisional`
 // ============================================================================
 
-// Event identifier prefix used when auto-generating DoT Connect IDs (§4).
-const EVENT_ID_PREFIX = 'DOT26';
+// Event identifier prefix used when auto-generating DoTT Connect IDs (§4).
+const EVENT_ID_PREFIX = 'DOTT26';
 
 // Ordered list of challenge keys. Order drives the leaderboard layout (§11).
 const CHALLENGE_KEYS = ['speedcube', 'chess', 'typing', 'debug'];
@@ -28,13 +28,15 @@ const CHALLENGES = {
     key: 'speedcube',
     name: 'Speed Cube',
     icon: '🧩',
-    // §8: one official solve time in seconds. The app stores only the final
+    // §8, finalized (PDF): one official solve time, seconds + milliseconds,
+    // as recorded by CS Timer (e.g. 14.205 s). The app stores only the final
     // official time — it never computes single/Ao3 itself (that is §20 scope).
     fields: [
       { key: 'timeSeconds', label: 'Official time (seconds)', unit: 's',
-        type: 'number', min: 0, required: true, decimals: 2 }
+        type: 'number', min: 0, required: true, decimals: 3 }
     ],
-    // §13: lower official time is better.
+    // §13, finalized: lower official time is better. Equal times share the
+    // same rank (§4 General Tie Rule — handled by rankTop, not here).
     rank: [{ field: 'timeSeconds', dir: 'asc' }],
     // Field shown as the headline number on the public board.
     primaryField: 'timeSeconds',
@@ -45,24 +47,27 @@ const CHALLENGES = {
     key: 'chess',
     name: 'Chess Puzzle Rush',
     icon: '♟️',
-    // §8: puzzles solved, time taken (seconds), mistakes count.
+    // §8, finalized (PDF): puzzles solved, mistakes, time taken (seconds).
+    // Field order here drives the display column order on the leaderboard
+    // and record form — kept matching the PDF's sample table (Puzzles, Mistakes, Time).
     fields: [
       { key: 'puzzlesSolved', label: 'Puzzles solved', unit: '',
         type: 'number', min: 0, required: true, integer: true },
-      { key: 'timeSeconds', label: 'Time taken (seconds)', unit: 's',
-        type: 'number', min: 0, required: true, decimals: 2 },
       { key: 'mistakes', label: 'Mistakes', unit: '',
-        type: 'number', min: 0, required: true, integer: true }
+        type: 'number', min: 0, required: true, integer: true },
+      { key: 'timeSeconds', label: 'Time taken (seconds)', unit: 's',
+        type: 'number', min: 0, required: true, decimals: 2 }
     ],
-    // §13: more puzzles solved is better. Tie-break rule "to be finalised" —
-    // provisional order: fewer mistakes, then faster time. Change here once set.
+    // §13, finalized (PDF): 1) more puzzles solved is better; 2) fewer
+    // mistakes is better; 3) lower time is better — only used when puzzles
+    // and mistakes are tied (e.g. a session cut short by the 3rd mistake).
     rank: [
       { field: 'puzzlesSolved', dir: 'desc' },
-      { field: 'mistakes', dir: 'asc' },     // provisional tie-break (§21)
-      { field: 'timeSeconds', dir: 'asc' }   // provisional tie-break (§21)
+      { field: 'mistakes', dir: 'asc' },
+      { field: 'timeSeconds', dir: 'asc' }
     ],
     primaryField: 'puzzlesSolved',
-    provisional: true // tie-break not finalised
+    provisional: false
   },
 
   typing: {
@@ -89,22 +94,31 @@ const CHALLENGES = {
     key: 'debug',
     name: 'Debug Challenge',
     icon: '🐞',
-    // §8 & §21: final format/scoring NOT finalised. Implemented with a single
-    // provisional score field so the system is usable now; swap the `fields`
-    // and `rank` below for the official format before production release.
+    // §8 & §21: final rules NOT fully finalised. Recorded as a time — seconds
+    // and milliseconds as two separate fields (not a single score) — so the
+    // system is usable now; adjust below if the official format changes.
     fields: [
-      { key: 'score', label: 'Score (provisional)', unit: 'pts',
-        type: 'number', min: 0, required: true, decimals: 1 }
+      { key: 'timeSeconds', label: 'Time — seconds', unit: 's',
+        type: 'number', min: 0, required: true, integer: true },
+      { key: 'timeMillis', label: 'Time — milliseconds', unit: 'ms',
+        type: 'number', min: 0, max: 999, required: true, integer: true }
     ],
-    // §13: ranking rule to be finalised. Provisional: higher score is better.
-    rank: [{ field: 'score', dir: 'desc' }],
-    primaryField: 'score',
+    // §13: lower total time is better. Comparing seconds first, then
+    // milliseconds as the tie-break, reproduces ordering by total time
+    // exactly (milliseconds is always 0–999, never carries into seconds).
+    rank: [
+      { field: 'timeSeconds', dir: 'asc' },
+      { field: 'timeMillis', dir: 'asc' }
+    ],
+    primaryField: 'timeSeconds',
+    // Composite display for the public board headline, e.g. "12.345s".
+    formatPrimary: (m) => `${m.timeSeconds}.${String(m.timeMillis ?? 0).padStart(3, '0')}s`,
     provisional: true // whole format not finalised
   }
 };
 
 // Controlled gender selection (§5 — required controlled value).
-const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say'];
+const GENDERS = ['Male', 'Female'];
 
 // --- small helpers used across the backend --------------------------------
 
@@ -127,11 +141,26 @@ function summariseMetrics(challengeKey, metrics = {}) {
     .join(' · ');
 }
 
+// Headline number shown on the public "All Challenges" board for one result.
+// Most challenges just show `value + unit` of their primaryField. A challenge
+// can define `formatPrimary(metrics)` to render a composite value instead
+// (e.g. Debug Challenge combines seconds + milliseconds into "12.345s").
+function formatPrimaryMetric(challengeKey, metrics = {}) {
+  const cfg = CHALLENGES[challengeKey];
+  if (!cfg) return '';
+  if (typeof cfg.formatPrimary === 'function') return cfg.formatPrimary(metrics);
+  const f = cfg.fields.find(x => x.key === cfg.primaryField);
+  const v = metrics[cfg.primaryField];
+  if (v === undefined || v === null) return '';
+  return `${v}${f && f.unit ? f.unit : ''}`;
+}
+
 module.exports = {
   EVENT_ID_PREFIX,
   CHALLENGE_KEYS,
   CHALLENGES,
   GENDERS,
   isChallenge,
-  summariseMetrics
+  summariseMetrics,
+  formatPrimaryMetric
 };

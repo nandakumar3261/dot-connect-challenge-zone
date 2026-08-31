@@ -89,20 +89,20 @@ async function test(name, fn) {
     cubeVolToken = r.body.token;
   });
 
-  await test('volunteer registers a student WITHOUT roll number -> auto DoT ID (§4)', async () => {
+  await test('volunteer registers a student WITHOUT roll number -> auto DoTT ID (§4)', async () => {
     const r = await api('POST', '/api/students', {
       token: cubeVolToken,
       body: { name: 'Asha Rao', mobile: '9876543210', gender: 'Female', branch: 'CSE', section: 'A' }
     });
     assert.strictEqual(r.status, 201);
-    assert.match(r.body.dotId, /^DOT26-\d{4}$/);
+    assert.match(r.body.dotId, /^DOTT26-\d{4}$/);
     // Volunteer sees masked mobile only (§7/§15)
     assert.strictEqual(r.body.mobile, undefined);
     assert.strictEqual(r.body.mobileMasked, '98••••••10');
     studentA = r.body;
   });
 
-  await test('second auto DoT ID increments (0001 -> 0002)', async () => {
+  await test('second auto DoTT ID increments (0001 -> 0002)', async () => {
     const r = await api('POST', '/api/students', {
       token: cubeVolToken,
       body: { name: 'Ravi Kumar', mobile: '9000000001', gender: 'Male', branch: 'ECE', section: 'B' }
@@ -179,13 +179,13 @@ async function test(name, fn) {
   await test('duplicate roll number is rejected (§17)', async () => {
     const first = await api('POST', '/api/students', {
       token: adminToken,
-      body: { name: 'Original', mobile: '9111111111', gender: 'Other', branch: 'IT', section: 'C', rollNumber: 'CS23-101' }
+      body: { name: 'Original', mobile: '9111111111', gender: 'Male', branch: 'IT', section: 'C', rollNumber: 'CS23-101' }
     });
     assert.strictEqual(first.status, 201);
 
     const dup = await api('POST', '/api/students', {
       token: adminToken,
-      body: { name: 'Dup', mobile: '9222222222', gender: 'Other', branch: 'IT', section: 'C', rollNumber: 'CS23-101' }
+      body: { name: 'Dup', mobile: '9222222222', gender: 'Male', branch: 'IT', section: 'C', rollNumber: 'CS23-101' }
     });
     assert.strictEqual(dup.status, 409);
   });
@@ -216,7 +216,7 @@ async function test(name, fn) {
   await test('students CSV export works for admin (§16)', async () => {
     const r = await api('GET', '/api/export/students.csv', { token: adminToken });
     assert.strictEqual(r.status, 200);
-    assert.ok(String(r.body).includes('DoT Connect ID'));
+    assert.ok(String(r.body).includes('DoTT Connect ID'));
   });
 
   console.log(`\n${passed} integration checks passed.`);

@@ -6,7 +6,7 @@ const RULE_NOTE = {
   speedcube: 'Fastest official time',
   chess: 'Most puzzles solved',
   typing: 'Highest WPM',
-  debug: 'Top score'
+  debug: 'Fastest time'
 };
 
 let config = null;      // { challenges: [...] }

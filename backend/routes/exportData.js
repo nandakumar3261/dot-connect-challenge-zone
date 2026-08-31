@@ -19,7 +19,7 @@ function toCsv(headers, rows) {
 router.get('/students.csv', async (req, res) => {
   const students = await Student.find().sort({ createdAt: 1 }).lean();
   const csv = toCsv(
-    ['DoT Connect ID', 'Roll Number', 'Name', 'Mobile', 'Gender', 'Branch', 'Section', 'Registered'],
+    ['DoTT Connect ID', 'Roll Number', 'Name', 'Mobile', 'Gender', 'Branch', 'Section', 'Registered'],
     students.map(s => [
       s.dotId, s.rollNumber || '', s.name, s.mobile, s.gender, s.branch, s.section,
       new Date(s.createdAt).toISOString()
@@ -34,7 +34,7 @@ router.get('/results.csv', async (req, res) => {
   if (req.query.challenge) filter.challenge = req.query.challenge;
   const results = await Result.find(filter).sort({ challenge: 1, createdAt: 1 }).lean();
   const csv = toCsv(
-    ['Challenge', 'DoT ID', 'Roll Number', 'Name', 'Branch', 'Section', 'Result', 'Status', 'Recorded By', 'Recorded At'],
+    ['Challenge', 'DoTT ID', 'Roll Number', 'Name', 'Branch', 'Section', 'Result', 'Status', 'Recorded By', 'Recorded At'],
     results.map(r => [
       r.challenge, r.dotId, r.rollNumber || '', r.name, r.branch, r.section,
       summariseMetrics(r.challenge, r.metrics), r.status, r.recordedBy || '',

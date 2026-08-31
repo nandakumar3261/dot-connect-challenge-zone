@@ -60,6 +60,47 @@ test('limit is respected', () => {
   assert.strictEqual(rankTop('typing', rows, 10).length, 10);
 });
 
+console.log('General Tie Rule (§4, PDF): ties share a rank, next rank skips ahead:');
+test('two tied for rank 5 -> next student is rank 7 (PDF Speed Cube example)', () => {
+  const rows = [
+    { name: 'Arjun', metrics: { timeSeconds: 11.482 } },
+    { name: 'Rahul', metrics: { timeSeconds: 12.136 } },
+    { name: 'Kiran', metrics: { timeSeconds: 13.027 } },
+    { name: 'Sai', metrics: { timeSeconds: 13.841 } },
+    { name: 'Vikram', metrics: { timeSeconds: 14.205 } },
+    { name: 'Aditya', metrics: { timeSeconds: 14.205 } },
+    { name: 'Nikhil', metrics: { timeSeconds: 14.891 } }
+  ];
+  const top = rankTop('speedcube', rows, 10);
+  const byName = Object.fromEntries(top.map(r => [r.name, r.rank]));
+  assert.strictEqual(byName.Arjun, 1);
+  assert.strictEqual(byName.Vikram, 5);
+  assert.strictEqual(byName.Aditya, 5);
+  assert.strictEqual(byName.Nikhil, 7);
+});
+test('complete tie (chess) also shares a rank', () => {
+  const rows = [
+    { name: 'A', metrics: { puzzlesSolved: 23, mistakes: 3, timeSeconds: 161 } },
+    { name: 'B', metrics: { puzzlesSolved: 23, mistakes: 3, timeSeconds: 161 } },
+    { name: 'C', metrics: { puzzlesSolved: 22, mistakes: 1, timeSeconds: 180 } }
+  ];
+  const top = rankTop('chess', rows, 10);
+  const byName = Object.fromEntries(top.map(r => [r.name, r.rank]));
+  assert.strictEqual(byName.A, 1);
+  assert.strictEqual(byName.B, 1);
+  assert.strictEqual(byName.C, 3);
+});
+
+console.log('Debug Challenge (seconds + milliseconds, not a score):');
+test('lower total time wins, milliseconds break the tie within the same second', () => {
+  assert.ok(isBetter('debug', { timeSeconds: 12, timeMillis: 100 }, { timeSeconds: 12, timeMillis: 500 }));
+  assert.ok(isBetter('debug', { timeSeconds: 11, timeMillis: 999 }, { timeSeconds: 12, timeMillis: 0 }));
+});
+test('debug primary display combines seconds + milliseconds', () => {
+  const { formatPrimaryMetric } = require('../challengeConfig');
+  assert.strictEqual(formatPrimaryMetric('debug', { timeSeconds: 12, timeMillis: 5 }), '12.005s');
+});
+
 console.log('Mobile masking (§5/§15): never reveal the middle:');
 test('keeps first 2 and last 2', () => {
   assert.strictEqual(maskMobile('9876543210'), '98••••••10');
@@ -71,20 +112,21 @@ test('short numbers fully masked', () => {
 console.log('summariseMetrics produces readable lines:');
 test('chess summary', () => {
   const s = summariseMetrics('chess', { puzzlesSolved: 24, timeSeconds: 118, mistakes: 3 });
-  assert.strictEqual(s, '24 · 118s · 3');
+  assert.strictEqual(s, '24 · 3 · 118s');
 });
 
 console.log('Config sanity:');
 test('exactly four challenges', () => {
   assert.strictEqual(Object.keys(CHALLENGES).length, 4);
 });
-test('event id prefix is DOT26', () => {
-  assert.strictEqual(EVENT_ID_PREFIX, 'DOT26');
+test('event id prefix is DOTT26', () => {
+  assert.strictEqual(EVENT_ID_PREFIX, 'DOTT26');
 });
-test('debug & chess flagged provisional (§21)', () => {
+test('only debug flagged provisional; speedcube/chess/typing finalised (§21, PDF)', () => {
   assert.strictEqual(CHALLENGES.debug.provisional, true);
-  assert.strictEqual(CHALLENGES.chess.provisional, true);
+  assert.strictEqual(CHALLENGES.chess.provisional, false);
   assert.strictEqual(CHALLENGES.speedcube.provisional, false);
+  assert.strictEqual(CHALLENGES.typing.provisional, false);
 });
 
 console.log(`\n${passed} checks passed.`);
