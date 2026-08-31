@@ -70,6 +70,11 @@ if (consoleRoot) {
   document.getElementById('whoami').textContent = `${store.name} · ${store.role}`;
   if (store.role === 'admin') document.getElementById('adminLink').hidden = false;
   document.getElementById('logoutBtn').addEventListener('click', () => { store.clear(); window.location.href = 'login.html'; });
+  {
+    const initials = (store.name || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    const av = document.getElementById('avatarInitials');
+    if (av) av.textContent = initials || '?';
+  }
 
   // ---- tabs: Post Result / Register Student (kept separate, not shown together) ----
   document.querySelectorAll('#consoleTabs .atab').forEach(tab => {
@@ -105,6 +110,36 @@ if (consoleRoot) {
     } else {
       sel.innerHTML = '<option value="">Select challenge…</option>' +
         list.map(c => `<option value="${c.key}">${esc(c.icon)} ${esc(c.name)}</option>`).join('');
+    }
+
+    // sidebar: "All Challenges" jumps to Post Result with nothing preselected;
+    // each challenge shortcut jumps to Post Result with that challenge chosen
+    // (only for challenges this account is actually authorised to record).
+    const sideBox = document.getElementById('sidebarChallenges');
+    if (sideBox) {
+      const goToPost = (key) => {
+        document.querySelectorAll('#consoleTabs .atab').forEach(t => t.setAttribute('aria-selected', 'false'));
+        document.querySelector('#consoleTabs .atab[data-view="post"]').setAttribute('aria-selected', 'true');
+        document.querySelectorAll('main.console > .view').forEach(v => v.hidden = true);
+        document.getElementById('view-post').hidden = false;
+        if (key && list.some(c => c.key === key)) {
+          sel.value = key;
+          sel.dispatchEvent(new Event('change'));
+        }
+      };
+      sideBox.innerHTML = `<button class="side-item" data-key="">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+          All Challenges
+        </button>` +
+        config.challenges.map(c => {
+          const authorised = list.some(x => x.key === c.key);
+          return `<button class="side-item" data-key="${c.key}" ${authorised ? '' : 'style="opacity:.4" title="Not authorised"'}>
+            <span class="icon">${esc(c.icon || '•')}</span> ${esc(c.name)}
+          </button>`;
+        }).join('');
+      sideBox.querySelectorAll('.side-item').forEach(btn => {
+        btn.addEventListener('click', () => goToPost(btn.dataset.key));
+      });
     }
   })();
 

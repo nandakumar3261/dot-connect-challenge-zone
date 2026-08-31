@@ -12,6 +12,29 @@ const store = {
 };
 function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
 
+// Small icon set for row-action buttons. Each button keeps its text as a
+// native `title` tooltip (shown on hover) instead of visible label text —
+// keeps busy tables (Students/Results/Volunteers) compact and scannable.
+const ICONS = {
+  trash: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m-9 0l1 13a2 2 0 002 2h6a2 2 0 002-2l1-13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="none"><path d="M11 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M18.4 2.6a1.9 1.9 0 012.7 2.7L12 14.4l-4 1 1-4 9.4-9.4z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  ban: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M5.5 5.5l13 13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 4.5-3 8.5-7 9-4-.5-7-4.5-7-9V6l7-3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>',
+  power: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M6.3 6.3a9 9 0 1011.4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+  key: '<svg viewBox="0 0 24 24" fill="none"><circle cx="8" cy="15" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M11 12l9-9M17 6l2.5 2.5M14 9l2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+// Wrap an icon as a titled/labelled span so it renders identically inside
+// any existing button markup — hover (or focus, for keyboard users) shows
+// the action name via the native title tooltip.
+function iconLabel(icon, label) {
+  return `<span class="btn-icon" title="${esc(label)}" aria-label="${esc(label)}">${ICONS[icon]}</span>`;
+}
+
+function initialsAvatar(name) {
+  const initials = (name || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  return `<span class="row-avatar">${esc(initials || '?')}</span>`;
+}
+
 async function authedFetch(path, options = {}) {
   const res = await fetch(`${API}${path}`, {
     ...options,
@@ -27,6 +50,11 @@ if (store.role && store.role !== 'admin') window.location.href = 'console.html';
 
 document.getElementById('whoami').textContent = `${store.name} · admin`;
 document.getElementById('logoutBtn').addEventListener('click', () => { store.clear(); window.location.href = 'login.html'; });
+{
+  const initials = (store.name || '?').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const av = document.getElementById('avatarInitials');
+  if (av) av.textContent = initials || '?';
+}
 
 let config = null;
 let challengeByKey = {};
@@ -75,13 +103,13 @@ function renderStudents() {
     <tr>
       <td class="mono">${esc(s.dotId)}</td>
       <td class="mono">${s.rollNumber ? esc(s.rollNumber) : '<span class="muted">—</span>'}</td>
-      <td>${esc(s.name)}</td>
+      <td>${initialsAvatar(s.name)}${esc(s.name)}</td>
       <td class="mono">${esc(s.mobile || '')}</td>
       <td>${esc(s.gender)}</td>
       <td>${esc(s.branch)}</td>
       <td>${esc(s.section)}</td>
       <td class="row-actions">
-        <button class="link-btn danger" data-act="del-student" data-id="${s._id}">Delete</button>
+        <button class="link-btn danger" data-act="del-student" data-id="${s._id}">${iconLabel('trash', 'Delete')}</button>
       </td>
     </tr>`).join('');
 }
@@ -126,9 +154,9 @@ async function loadResults() {
           <td>${esc(r.recordedBy || '')}</td>
           <td class="muted">${esc(when)}</td>
           <td class="row-actions">
-            <button class="link-btn" data-act="correct" data-id="${r._id}" data-ch="${r.challenge}" data-metrics='${esc(JSON.stringify(r.metrics))}'>Correct</button>
-            ${r.status !== 'invalid' ? `<button class="link-btn danger" data-act="invalidate" data-id="${r._id}">Invalidate</button>` : ''}
-            <button class="link-btn danger" data-act="del-result" data-id="${r._id}">Delete</button>
+            <button class="link-btn" data-act="correct" data-id="${r._id}" data-ch="${r.challenge}" data-metrics='${esc(JSON.stringify(r.metrics))}'>${iconLabel('edit', 'Correct')}</button>
+            ${r.status !== 'invalid' ? `<button class="link-btn danger" data-act="invalidate" data-id="${r._id}">${iconLabel('ban', 'Invalidate')}</button>` : ''}
+            <button class="link-btn danger" data-act="del-result" data-id="${r._id}">${iconLabel('trash', 'Delete')}</button>
           </td>
         </tr>`;
     }).join('');
@@ -232,10 +260,10 @@ async function loadVolunteers() {
           <td>${perms}</td>
           <td><span class="tag ${u.active ? 'on' : 'off'}">${u.active ? 'active' : 'disabled'}</span></td>
           <td class="row-actions">
-            ${u.role === 'volunteer' ? `<button class="link-btn" data-act="perms" data-id="${u._id}" data-perms='${esc(JSON.stringify(u.permissions))}' data-name="${esc(u.displayName || u.username)}">Permissions</button>` : ''}
-            <button class="link-btn" data-act="toggle" data-id="${u._id}" data-active="${u.active}">${u.active ? 'Disable' : 'Enable'}</button>
-            <button class="link-btn" data-act="reset" data-id="${u._id}">Reset pw</button>
-            ${u.role === 'volunteer' ? `<button class="link-btn danger" data-act="del-vol" data-id="${u._id}">Delete</button>` : ''}
+            ${u.role === 'volunteer' ? `<button class="link-btn" data-act="perms" data-id="${u._id}" data-perms='${esc(JSON.stringify(u.permissions))}' data-name="${esc(u.displayName || u.username)}">${iconLabel('shield', 'Permissions')}</button>` : ''}
+            <button class="link-btn" data-act="toggle" data-id="${u._id}" data-active="${u.active}">${iconLabel('power', u.active ? 'Disable' : 'Enable')}</button>
+            <button class="link-btn" data-act="reset" data-id="${u._id}">${iconLabel('key', 'Reset password')}</button>
+            ${u.role === 'volunteer' ? `<button class="link-btn danger" data-act="del-vol" data-id="${u._id}">${iconLabel('trash', 'Delete')}</button>` : ''}
           </td>
         </tr>`;
     }).join('');
@@ -342,6 +370,29 @@ document.getElementById('exportResultsBtn').addEventListener('click', () => down
   const optHtml = config.challenges.map(c => `<option value="${c.key}">${esc(c.name)}</option>`).join('');
   document.getElementById('resultChallengeFilter').insertAdjacentHTML('beforeend', optHtml);
   buildPermChips('volPerms', []);
+
+  // sidebar: "All Challenges" + one shortcut per challenge, jumping to the
+  // Results tab pre-filtered to that challenge (or reset for "All").
+  const sideBox = document.getElementById('sidebarChallenges');
+  if (sideBox) {
+    const goToResults = (key) => {
+      document.querySelectorAll('.atab').forEach(t => t.setAttribute('aria-selected', 'false'));
+      document.querySelector('.atab[data-view="results"]').setAttribute('aria-selected', 'true');
+      document.querySelectorAll('.view').forEach(v => v.hidden = true);
+      document.getElementById('view-results').hidden = false;
+      const filter = document.getElementById('resultChallengeFilter');
+      filter.value = key;
+      filter.dispatchEvent(new Event('change'));
+    };
+    sideBox.innerHTML = `<button class="side-item" data-key="">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.6"/></svg>
+        All Challenges
+      </button>` +
+      config.challenges.map(c => `<button class="side-item" data-key="${c.key}"><span class="icon">${esc(c.icon || '•')}</span> ${esc(c.name)}</button>`).join('');
+    sideBox.querySelectorAll('.side-item').forEach(btn => {
+      btn.addEventListener('click', () => goToResults(btn.dataset.key));
+    });
+  }
 
   loadStats();
   loadStudents();

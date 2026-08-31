@@ -10,118 +10,158 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="appbar">
-    <div class="appbar-brand">
-      <span class="brand-dot"></span>
-      <span class="brand-name">DoTT Connect <b>2026</b></span>
-      <span class="pill pill-admin">Admin</span>
-    </div>
-    <div class="appbar-right">
-      <span id="whoami" class="whoami"></span>
-      <a href="console.html" class="btn btn-ghost">Console</a>
-      <button id="logoutBtn" class="btn btn-ghost">Sign out</button>
-    </div>
-  </header>
+  <div class="app-shell">
 
-  <nav class="admin-tabs" id="adminTabs">
-    <button class="atab" data-view="students" aria-selected="true">Students</button>
-    <button class="atab" data-view="results">Results</button>
-    <button class="atab" data-view="volunteers">Volunteers &amp; permissions</button>
-    <button class="atab" data-view="exports">Exports</button>
-  </nav>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-logo"><span class="brand-dot"></span></span>
+        <div>
+          <div class="brand-name">Challenge <br>Zone</div>
+          <span class="brand-sub">Sept 2–11, 2026</span>
+        </div>
+      </div>
 
-  <main class="admin">
+      <div class="side-label">Challenges</div>
+      <div id="sidebarChallenges"></div>
 
-    <!-- ===== STUDENTS ===== -->
-    <section class="view" id="view-students">
-      <div class="stats-bar" id="statsBar"></div>
-      <div class="card">
-        <div class="card-head">
-          <h2>Students</h2>
-          <div class="head-actions">
-            <input id="studentSearch" class="input" placeholder="Filter by name / roll / DoTT ID">
-            <button id="refreshStudentsBtn" class="btn btn-ghost btn-sm">Refresh</button>
+      <div class="side-label">Admin</div>
+      <nav id="adminTabs">
+        <button class="atab side-item" data-view="students" aria-selected="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Students Admin
+        </button>
+        <button class="atab side-item" data-view="results">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M7 9h10M7 13h10M7 17h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          Results Admin
+        </button>
+        <button class="atab side-item" data-view="volunteers">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2M10 11a4 4 0 100-8 4 4 0 000 8zM20 8v6M23 11h-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Volunteers &amp; Permissions
+        </button>
+        <button class="atab side-item" data-view="exports">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12M7 10l5 5 5-5M4 21h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Exports
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-foot">
+        <a href="console.html" class="side-item">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Console
+        </a>
+        <button id="logoutBtn" class="side-item">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Sign out
+        </button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar-mini">
+        <span class="whoami" id="whoami"></span>
+        <button class="icon-btn" title="Event window: Sept 2–11, 2026">
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+        <span class="avatar" id="avatarInitials">–</span>
+      </div>
+
+      <main class="admin">
+
+        <!-- ===== STUDENTS ===== -->
+        <section class="view" id="view-students">
+          <div class="page-head" style="padding:0 0 16px"><h1>Students Database</h1></div>
+          <div class="stats-bar" id="statsBar"></div>
+          <div class="card">
+            <div class="card-head">
+              <h2>Students</h2>
+              <div class="head-actions">
+                <input id="studentSearch" class="input" placeholder="Filter by name / roll / DoTT ID">
+                <button id="refreshStudentsBtn" class="btn btn-ghost btn-sm">Refresh</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr>
+                  <th>DoTT ID</th><th>Roll No.</th><th>Name</th><th>Mobile</th>
+                  <th>Gender</th><th>Branch</th><th>Sec</th><th></th>
+                </tr></thead>
+                <tbody id="studentsBody"><tr><td colspan="8" class="muted">Loading…</td></tr></tbody>
+              </table>
+            </div>
           </div>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr>
-              <th>DoTT ID</th><th>Roll No.</th><th>Name</th><th>Mobile</th>
-              <th>Gender</th><th>Branch</th><th>Sec</th><th></th>
-            </tr></thead>
-            <tbody id="studentsBody"><tr><td colspan="8" class="muted">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+        </section>
 
-    <!-- ===== RESULTS ===== -->
-    <section class="view" id="view-results" hidden>
-      <div class="card">
-        <div class="card-head">
-          <h2>Results</h2>
-          <div class="head-actions">
-            <select id="resultChallengeFilter" class="input"><option value="">All challenges</option></select>
-            <select id="resultStatusFilter" class="input">
-              <option value="">Any status</option>
-              <option value="active">Active (best)</option>
-              <option value="superseded">Superseded</option>
-              <option value="invalid">Invalid</option>
-            </select>
-            <button id="refreshResultsBtn" class="btn btn-ghost btn-sm">Refresh</button>
+        <!-- ===== RESULTS ===== -->
+        <section class="view" id="view-results" hidden>
+          <div class="page-head" style="padding:0 0 16px"><h1>Results Management</h1><p class="muted" style="margin-top:6px">Oversee, correct, and validate challenge submissions.</p></div>
+          <div class="card">
+            <div class="card-head">
+              <h2>Results</h2>
+              <div class="head-actions">
+                <select id="resultChallengeFilter" class="input"><option value="">All challenges</option></select>
+                <select id="resultStatusFilter" class="input">
+                  <option value="">Any status</option>
+                  <option value="active">Active (best)</option>
+                  <option value="superseded">Superseded</option>
+                  <option value="invalid">Invalid</option>
+                </select>
+                <button id="refreshResultsBtn" class="btn btn-ghost btn-sm">Refresh</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr>
+                  <th>Challenge</th><th>Name</th><th>Roll / ID</th><th>Result</th>
+                  <th>Status</th><th>By</th><th>When</th><th></th>
+                </tr></thead>
+                <tbody id="resultsBody"><tr><td colspan="8" class="muted">Loading…</td></tr></tbody>
+              </table>
+            </div>
           </div>
-        </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr>
-              <th>Challenge</th><th>Name</th><th>Roll / ID</th><th>Result</th>
-              <th>Status</th><th>By</th><th>When</th><th></th>
-            </tr></thead>
-            <tbody id="resultsBody"><tr><td colspan="8" class="muted">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+        </section>
 
-    <!-- ===== VOLUNTEERS ===== -->
-    <section class="view" id="view-volunteers" hidden>
-      <div class="card">
-        <div class="card-head"><h2>Add volunteer</h2></div>
-        <div class="reg-grid">
-          <div class="field"><label for="volUser">Username *</label><input id="volUser" autocomplete="off"></div>
-          <div class="field"><label for="volName">Display name</label><input id="volName"></div>
-          <div class="field"><label for="volPass">Password *</label><input id="volPass" type="text" autocomplete="off"></div>
-        </div>
-        <label>Authorised challenges</label>
-        <div id="volPerms" class="perm-row"></div>
-        <button id="addVolBtn" class="btn btn-primary">Create volunteer</button>
-        <p id="volMsg" class="form-msg"></p>
-      </div>
+        <!-- ===== VOLUNTEERS ===== -->
+        <section class="view" id="view-volunteers" hidden>
+          <div class="card">
+            <div class="card-head"><h2>Add volunteer</h2></div>
+            <div class="reg-grid">
+              <div class="field"><label for="volUser">Username *</label><input id="volUser" autocomplete="off"></div>
+              <div class="field"><label for="volName">Display name</label><input id="volName"></div>
+              <div class="field"><label for="volPass">Password *</label><input id="volPass" type="text" autocomplete="off"></div>
+            </div>
+            <label>Authorised challenges</label>
+            <div id="volPerms" class="perm-row"></div>
+            <button id="addVolBtn" class="btn btn-primary">Create volunteer</button>
+            <p id="volMsg" class="form-msg"></p>
+          </div>
 
-      <div class="card">
-        <div class="card-head"><h2>Staff accounts</h2><button id="refreshVolBtn" class="btn btn-ghost btn-sm">Refresh</button></div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead><tr><th>Username</th><th>Role</th><th>Authorised challenges</th><th>Status</th><th></th></tr></thead>
-            <tbody id="volBody"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+          <div class="card">
+            <div class="card-head"><h2>Staff accounts</h2><button id="refreshVolBtn" class="btn btn-ghost btn-sm">Refresh</button></div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead><tr><th>Username</th><th>Role</th><th>Authorised challenges</th><th>Status</th><th></th></tr></thead>
+                <tbody id="volBody"><tr><td colspan="5" class="muted">Loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
 
-    <!-- ===== EXPORTS ===== -->
-    <section class="view" id="view-exports" hidden>
-      <div class="card">
-        <div class="card-head"><h2>Export data</h2><p class="muted">Downloads as CSV. Student export includes mobile numbers for prize contact; result exports never do.</p></div>
-        <div class="export-row">
-          <button id="exportStudentsBtn" class="btn btn-primary">Download students.csv</button>
-          <button id="exportResultsBtn" class="btn btn-primary">Download results.csv</button>
-        </div>
-      </div>
-    </section>
+        <!-- ===== EXPORTS ===== -->
+        <section class="view" id="view-exports" hidden>
+          <div class="card">
+            <div class="card-head"><h2>Export data</h2><p class="muted">Downloads as CSV. Student export includes mobile numbers for prize contact; result exports never do.</p></div>
+            <div class="export-row">
+              <button id="exportStudentsBtn" class="btn btn-primary">Download students.csv</button>
+              <button id="exportResultsBtn" class="btn btn-primary">Download results.csv</button>
+            </div>
+          </div>
+        </section>
 
-  </main>
-
+      </main>
+    </div>
+  </div>
 
   <script src="admin.js"></script>
 </body>

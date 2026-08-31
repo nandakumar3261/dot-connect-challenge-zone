@@ -1,7 +1,7 @@
 # DoTT Connect 2026 — Challenge Zone
 
 A student **registration, result-recording, permission, and leaderboard** system for the
-DoTT Connect 2026 Challenge Zone (Sept 1–12, 2026). It does **not** run the challenges
+DoTT Connect 2026 Challenge Zone (Sept 2–11, 2026). It does **not** run the challenges
 themselves — volunteers evaluate participants on the agreed setup/platform and enter the
 official result here.
 

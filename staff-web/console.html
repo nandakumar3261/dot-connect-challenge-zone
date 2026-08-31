@@ -10,108 +10,141 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="appbar">
-    <div class="appbar-brand">
-      <span class="brand-dot"></span>
-      <span class="brand-name">DoTT Connect <b>2026</b></span>
-      <span class="pill pill-console">Console</span>
-    </div>
-    <div class="appbar-right">
-      <span id="whoami" class="whoami"></span>
-      <a id="adminLink" href="admin.html" class="btn btn-ghost" hidden>Admin</a>
-      <button id="logoutBtn" class="btn btn-ghost">Sign out</button>
-    </div>
-  </header>
+  <div class="app-shell">
 
-  <nav class="admin-tabs" id="consoleTabs">
-    <button class="atab" data-view="post" aria-selected="true">Post Result</button>
-    <button class="atab" data-view="register">Register Student</button>
-  </nav>
-
-  <main class="console">
-
-    <!-- ============ POST RESULT TAB ============ -->
-    <section class="view" id="view-post">
-
-    <!-- ============ SEARCH ============ -->
-    <section class="card span-2">
-      <div class="card-head">
-        <h2><span class="step">1</span> Search</h2>
-        <p class="muted">Find a student by roll number, DoTT Connect ID, or name.</p>
-      </div>
-      <div class="search-row">
-        <input id="searchInput" class="input-lg" placeholder="Roll number, DOTT26-…, or name" autocomplete="off">
-        <button id="searchBtn" class="btn btn-primary">Search</button>
-      </div>
-      <div id="searchResults" class="search-results"></div>
-    </section>
-
-    <!-- ============ SELECTED STUDENT + HISTORY ============ -->
-    <section class="card span-2" id="studentCard" hidden>
-      <div class="card-head">
-        <h2>Student</h2>
-        <button id="clearStudentBtn" class="btn btn-ghost btn-sm">Clear</button>
-      </div>
-      <div id="studentDetail" class="student-detail"></div>
-
-      <h3 class="subhead">Participation history</h3>
-      <div id="historyGrid" class="history-grid"></div>
-    </section>
-
-    <!-- ============ RECORD ============ -->
-    <section class="card" id="recordCard" hidden>
-      <div class="card-head">
-        <h2><span class="step">2</span> Record a result</h2>
-        <p class="muted">Only challenges you're authorised for appear here.</p>
-      </div>
-
-      <label for="recChallenge">Challenge</label>
-      <select id="recChallenge" class="input-lg">
-        <option value="">Select challenge…</option>
-      </select>
-
-      <div id="dupWarning" class="warn-box" hidden></div>
-      <div id="recFields" class="rec-fields"></div>
-
-      <button id="saveResultBtn" class="btn btn-primary btn-block" disabled>Save result</button>
-      <p id="recordMsg" class="form-msg"></p>
-    </section>
-
-    <p class="muted span-2" id="noStudentNote">No student selected yet. Use Search above, or switch to <b>Register Student</b> if they don't have a profile.</p>
-
-    </section>
-
-    <!-- ============ REGISTER STUDENT TAB ============ -->
-    <section class="view" id="view-register" hidden>
-    <section class="card span-2 register-panel" id="registerCard">
-      <div class="reg-header">
-        <span class="reg-icon">🧑‍🎓</span>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-logo"><span class="brand-dot"></span></span>
         <div>
-          <h2>Register a new student</h2>
-          <p class="muted">Use this only when Search finds no existing profile. Leave roll number blank to auto-assign a DoTT Connect ID.</p>
+          <div class="brand-name">Challenge <br>Zone</div>
+          <span class="brand-sub">Sept 2–11, 2026</span>
         </div>
       </div>
 
-      <h3 class="reg-groupTitle">Personal details</h3>
-      <div class="reg-grid">
-        <div class="field"><label for="regName">Full name *</label><input id="regName" placeholder="e.g. Asha Rao"></div>
-        <div class="field"><label for="regMobile">Mobile *</label><input id="regMobile" inputmode="numeric" placeholder="10-digit number"></div>
-        <div class="field"><label for="regGender">Gender *</label><select id="regGender"></select></div>
+      <div class="side-label">Challenges</div>
+      <div id="sidebarChallenges"></div>
+
+      <div class="side-label">Console</div>
+      <nav id="consoleTabs">
+        <button class="atab side-item" data-view="post" aria-selected="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Post Result
+        </button>
+        <button class="atab side-item" data-view="register">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM19 8v6M22 11h-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Register Student
+        </button>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-foot">
+        <a id="adminLink" href="admin.html" class="side-item" hidden>
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 4.5-3 8.5-7 9-4-.5-7-4.5-7-9V6l7-3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          Admin
+        </a>
+        <button id="logoutBtn" class="side-item">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Sign out
+        </button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar-mini">
+        <span class="whoami" id="whoami"></span>
+        <button class="icon-btn" title="Event window: Sept 2–11, 2026">
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+        <span class="avatar" id="avatarInitials">–</span>
       </div>
 
-      <h3 class="reg-groupTitle">Academic details</h3>
-      <div class="reg-grid">
-        <div class="field"><label for="regBranch">Branch *</label><input id="regBranch" placeholder="e.g. CSE"></div>
-        <div class="field"><label for="regSection">Section *</label><input id="regSection" placeholder="e.g. A"></div>
-        <div class="field"><label for="regRoll">Roll number <span class="muted">(optional)</span></label><input id="regRoll" placeholder="Auto DoTT ID if blank"></div>
-      </div>
+      <main class="console">
 
-      <button id="registerBtn" class="btn btn-primary btn-block">Register student</button>
-      <p id="registerMsg" class="form-msg"></p>
-    </section>
-    </section>
+        <!-- ============ POST RESULT TAB ============ -->
+        <section class="view" id="view-post">
 
-  </main>
+        <!-- ============ SEARCH ============ -->
+        <section class="card span-2">
+          <div class="card-head">
+            <h2><span class="step">1</span> Search</h2>
+            <p class="muted">Find a student by roll number, DoTT Connect ID, or name.</p>
+          </div>
+          <div class="search-row">
+            <input id="searchInput" class="input-lg" placeholder="Roll number, DOTT26-…, or name" autocomplete="off">
+            <button id="searchBtn" class="btn btn-primary">Search</button>
+          </div>
+          <div id="searchResults" class="search-results"></div>
+        </section>
+
+        <!-- ============ SELECTED STUDENT + HISTORY ============ -->
+        <section class="card span-2" id="studentCard" hidden>
+          <div class="card-head">
+            <h2>Student</h2>
+            <button id="clearStudentBtn" class="btn btn-ghost btn-sm">Clear</button>
+          </div>
+          <div id="studentDetail" class="student-detail"></div>
+
+          <h3 class="subhead">Participation history</h3>
+          <div id="historyGrid" class="history-grid"></div>
+        </section>
+
+        <!-- ============ RECORD ============ -->
+        <section class="card" id="recordCard" hidden>
+          <div class="card-head">
+            <h2><span class="step">2</span> Record a result</h2>
+            <p class="muted">Only challenges you're authorised for appear here.</p>
+          </div>
+
+          <label for="recChallenge">Challenge</label>
+          <select id="recChallenge" class="input-lg">
+            <option value="">Select challenge…</option>
+          </select>
+
+          <div id="dupWarning" class="warn-box" hidden></div>
+          <div id="recFields" class="rec-fields"></div>
+
+          <button id="saveResultBtn" class="btn btn-primary btn-block" disabled>Save result</button>
+          <p id="recordMsg" class="form-msg"></p>
+        </section>
+
+        <p class="muted span-2" id="noStudentNote">No student selected yet. Use Search above, or switch to <b>Register Student</b> if they don't have a profile.</p>
+
+        </section>
+
+        <!-- ============ REGISTER STUDENT TAB ============ -->
+        <section class="view" id="view-register" hidden>
+        <section class="card span-2 register-panel" id="registerCard">
+          <div class="reg-header">
+            <span class="reg-icon">🧑‍🎓</span>
+            <div>
+              <h2>Register a new student</h2>
+              <p class="muted">Use this only when Search finds no existing profile. Leave roll number blank to auto-assign a DoTT Connect ID.</p>
+            </div>
+          </div>
+
+          <h3 class="reg-groupTitle">Personal details</h3>
+          <div class="reg-grid">
+            <div class="field"><label for="regName">Full name *</label><input id="regName" placeholder="e.g. Asha Rao"></div>
+            <div class="field"><label for="regMobile">Mobile *</label><input id="regMobile" inputmode="numeric" placeholder="10-digit number"></div>
+            <div class="field"><label for="regGender">Gender *</label><select id="regGender"></select></div>
+          </div>
+
+          <h3 class="reg-groupTitle">Academic details</h3>
+          <div class="reg-grid">
+            <div class="field"><label for="regBranch">Branch *</label><input id="regBranch" placeholder="e.g. CSE"></div>
+            <div class="field"><label for="regSection">Section *</label><input id="regSection" placeholder="e.g. A"></div>
+            <div class="field"><label for="regRoll">Roll number <span class="muted">(optional)</span></label><input id="regRoll" placeholder="Auto DoTT ID if blank"></div>
+          </div>
+
+          <button id="registerBtn" class="btn btn-primary btn-block">Register student</button>
+          <p id="registerMsg" class="form-msg"></p>
+        </section>
+        </section>
+
+      </main>
+    </div>
+  </div>
 
   <script src="staff.js"></script>
 </body>
