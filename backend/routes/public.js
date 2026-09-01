@@ -150,25 +150,32 @@ router.get('/stats', async (req, res) => {
 // ---------------------------------------------------------------------------
 router.post('/public-register', async (req, res) => {
   try {
-    const { name, mobile, gender, branch, section } = req.body;
+    const { name, gender, branch, section } = req.body;
     let { rollNumber } = req.body;
+    const mobile = String(req.body.mobile || '').trim();
 
     if (!name || !mobile || !gender || !branch || !section) {
       return res.status(400).json({ error: 'Name, mobile, gender, branch and section are required.' });
+    }
+    if (!/^[0-9]{10}$/.test(mobile)) {
+      return res.status(400).json({ error: 'Mobile number must be exactly 10 digits.' });
     }
     if (!GENDERS.includes(gender)) {
       return res.status(400).json({ error: `Gender must be one of: ${GENDERS.join(', ')}` });
     }
     rollNumber = rollNumber && String(rollNumber).trim() ? String(rollNumber).trim() : undefined;
 
+    const mobileClash = await Student.findOne({ mobile });
+    if (mobileClash) return res.status(409).json({ error: 'A student with that mobile number is already registered.' });
+
     if (rollNumber) {
-      const clash = await Student.findOne({ rollNumber });
-      if (clash) return res.status(409).json({ error: 'A student with that roll number already exists.' });
+      const rollClash = await Student.findOne({ rollNumber });
+      if (rollClash) return res.status(409).json({ error: 'A student with that roll number already exists.' });
     }
 
     const student = await Student.create({
       name: String(name).trim(),
-      mobile: String(mobile).trim(),
+      mobile,
       gender,
       branch: String(branch).trim(),
       section: String(section).trim(),
@@ -179,7 +186,9 @@ router.post('/public-register', async (req, res) => {
     res.status(201).json({ name: student.name, dotId: student.dotId, rollNumber: student.rollNumber || '' });
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(409).json({ error: 'Duplicate student (roll number or DoTT ID already exists).' });
+      const field = err.keyPattern ? Object.keys(err.keyPattern)[0] : null;
+      const label = field === 'mobile' ? 'mobile number' : field === 'rollNumber' ? 'roll number' : 'DoTT Connect ID';
+      return res.status(409).json({ error: `A student with that ${label} already exists.` });
     }
     res.status(500).json({ error: 'Could not register. Please see a volunteer at the help desk.' });
   }

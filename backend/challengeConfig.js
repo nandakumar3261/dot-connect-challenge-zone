@@ -38,7 +38,7 @@ const CHALLENGES = {
     ],
     // Displayed as one combined time column, which is also the headline score.
     columns: [{ label: 'Time', type: 'cubeTime', primary: true }],
-    hint: 'Official solve time, shown as m:ss.mmm (minutes:seconds.milliseconds). Lower time ranks higher.',
+    hint: 'Official solve time, shown as mm:ss:mmm (minutes:seconds:milliseconds). Lower time ranks higher.',
     provisional: false
   },
 
@@ -107,7 +107,7 @@ const CHALLENGES = {
       { field: 'timeMillis', dir: 'asc' }
     ],
     columns: [{ label: 'Time', type: 'debugTime', primary: true }],
-    hint: 'Recorded as time in seconds.milliseconds. Lower time ranks higher. Format is provisional.',
+    hint: 'Recorded as time in seconds.milliseconds. Lower time ranks higher.',
     provisional: true
   }
 };
@@ -128,7 +128,7 @@ function formatColumnValue(type, metrics, field) {
     case 'pct': return `${m[field] != null ? m[field] : 0}%`;
     case 'cubeTime': {
       const mm = +m.minutes || 0, ss = +m.seconds || 0, ms = +m.milliseconds || 0;
-      return mm > 0 ? `${mm}:${pad(ss, 2)}.${pad(ms, 3)}` : `${ss}.${pad(ms, 3)}s`;
+      return `${pad(mm, 2)}:${pad(ss, 2)}:${pad(ms, 3)}`;
     }
     case 'clock': {
       const mm = +m.minutes || 0, ss = +m.seconds || 0;

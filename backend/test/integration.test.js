@@ -189,7 +189,7 @@ async function test(name, fn) {
     const r = await api('GET', '/api/leaderboard');
     assert.strictEqual(r.status, 200);
     const cube = r.body.boards.speedcube;
-    assert.strictEqual(cube[0].columns[0].value, '12.000s');
+    assert.strictEqual(cube[0].columns[0].value, '00:12:000');
     assert.ok(!JSON.stringify(r.body).includes('9876543210'));
   });
 
@@ -205,6 +205,45 @@ async function test(name, fn) {
       body: { name: 'Dup', mobile: '9222222222', gender: 'Male', branch: 'IT', section: 'C', rollNumber: 'CS23-101' }
     });
     assert.strictEqual(dup.status, 409);
+  });
+
+  await test('mobile number must be exactly 10 digits', async () => {
+    const tooShort = await api('POST', '/api/students', {
+      token: adminToken,
+      body: { name: 'Short Mobile', mobile: '12345', gender: 'Male', branch: 'IT', section: 'C' }
+    });
+    assert.strictEqual(tooShort.status, 400);
+
+    const nonDigits = await api('POST', '/api/students', {
+      token: adminToken,
+      body: { name: 'Bad Mobile', mobile: '98765abc10', gender: 'Male', branch: 'IT', section: 'C' }
+    });
+    assert.strictEqual(nonDigits.status, 400);
+  });
+
+  await test('duplicate mobile number is rejected', async () => {
+    const first = await api('POST', '/api/students', {
+      token: adminToken,
+      body: { name: 'Mobile Owner', mobile: '9333333333', gender: 'Female', branch: 'IT', section: 'D' }
+    });
+    assert.strictEqual(first.status, 201);
+
+    const dup = await api('POST', '/api/students', {
+      token: adminToken,
+      body: { name: 'Mobile Reuser', mobile: '9333333333', gender: 'Male', branch: 'IT', section: 'D' }
+    });
+    assert.strictEqual(dup.status, 409);
+    assert.match(dup.body.error, /mobile/i);
+  });
+
+  await test('roll number stays optional -> DoTT ID auto-assigned when blank', async () => {
+    const r = await api('POST', '/api/students', {
+      token: adminToken,
+      body: { name: 'No Roll Yet', mobile: '9444444444', gender: 'Female', branch: 'IT', section: 'E' }
+    });
+    assert.strictEqual(r.status, 201);
+    assert.match(r.body.dotId, /^DOTT26-\d{4}$/);
+    assert.strictEqual(r.body.rollNumber, '');
   });
 
   await test('admin invalidates the active result -> next best promoted (§16/§18)', async () => {

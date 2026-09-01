@@ -15,7 +15,8 @@
   --speedcube: #ffb020;
   --chess: #b98bff;
   --typing: #34d6a5;
-  --debug: #ff6b81;
+  --debug: #4ea1ff;
+  --error: #ff6b81;
 
   --radius: 16px;
 }
@@ -45,7 +46,7 @@ body {
   filter: drop-shadow(0 0 16px rgba(185,139,255,0.45));
 }
 .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
-.brand-name { font-family: 'Archivo', sans-serif; font-weight: 800; letter-spacing: 0.02em; font-size: clamp(1.1rem, 2vw, 1.5rem); }
+.brand-name { font-family: 'Archivo', sans-serif; font-weight: 800; letter-spacing: 0.02em; font-size: clamp(1rem, 1.8vw, 1.3rem); }
 .brand-name b { color: var(--speedcube); font-weight: 900; }
 .brand-sub { color: var(--text-dim); font-size: 0.8rem; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 3px; }
 
@@ -61,7 +62,7 @@ body {
 .tab {
   border: 1px solid var(--line); background: var(--surface);
   color: var(--text-dim); font-family: 'Archivo', sans-serif; font-weight: 700;
-  padding: 9px 16px; border-radius: 999px; cursor: pointer; font-size: 0.9rem;
+  padding: 8px 14px; border-radius: 999px; cursor: pointer; font-size: 0.82rem;
   display: inline-flex; align-items: center; gap: 7px; transition: all .15s;
 }
 .tab:hover { color: var(--text); border-color: var(--text-dim); }
@@ -91,30 +92,32 @@ body {
   display: flex; align-items: baseline; gap: 10px;
   padding: 16px 18px 10px;
 }
-.panel-icon { font-size: 1.4rem; filter: saturate(1.2); }
-.panel-title { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 1.15rem; color: var(--accent); }
+.panel-icon { font-size: 1.25rem; filter: saturate(1.2); }
+.panel-title { font-family: 'Archivo', sans-serif; font-weight: 800; font-size: 1.02rem; color: var(--accent); }
 .panel-note { color: var(--text-dim); font-size: 0.75rem; margin-left: auto; text-align: right; }
-.provisional {
-  display: inline-block; font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase;
-  color: var(--gold); border: 1px solid var(--gold); border-radius: 999px; padding: 1px 7px; margin-left: 6px;
-}
 
 /* ---------- tables ---------- */
+/* Each panel clips overflow (for the rounded corners / top accent bar), so
+   wrap the table in its own horizontal scroller — otherwise a card that's
+   too narrow for all its columns (e.g. Chess: Puzzles/Mistakes/Time) silently
+   crops the rightmost column instead of showing a scrollbar. */
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-scroll table { width: auto; min-width: 100%; }
 table { width: 100%; border-collapse: collapse; }
 thead th {
   text-align: left; color: var(--text-dim); font-weight: 600;
-  font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
-  padding: 6px 18px; border-bottom: 1px solid var(--line);
+  font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 6px 16px; border-bottom: 1px solid var(--line);
 }
-tbody td { padding: 9px 18px; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+tbody td { padding: 8px 16px; border-bottom: 1px solid var(--line); font-size: 0.82rem; }
 tbody tr:last-child td { border-bottom: none; }
 
 .rank { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--text-dim); width: 2.5em; }
 tr.top1 .rank { color: var(--gold); }
 tr.top1 .name { color: var(--gold); font-weight: 600; }
-.name { font-weight: 500; }
-.ident { font-family: 'JetBrains Mono', monospace; color: var(--text-dim); font-size: 0.82rem; }
-.score { font-family: 'JetBrains Mono', monospace; font-weight: 700; text-align: right; white-space: nowrap; color: var(--accent); }
+.name { font-weight: 500; min-width: 160px; }
+.ident { font-family: 'JetBrains Mono', monospace; color: var(--text-dim); font-size: 0.74rem; min-width: 120px; }
+.score { font-family: 'JetBrains Mono', monospace; font-weight: 700; text-align: right; white-space: nowrap; color: var(--accent); width: 1%; }
 .score .unit { color: var(--text-dim); font-weight: 500; font-size: 0.8em; margin-left: 3px; }
 
 .empty td { color: var(--text-dim); font-style: italic; text-align: center; padding: 22px; }
@@ -128,15 +131,15 @@ tr.top1 .name { color: var(--gold); font-weight: 600; }
 /* ---------- detailed single-challenge view (§12) ---------- */
 .detail { }
 .detail .panel-head { padding: 20px 22px 14px; }
-.detail .panel-title { font-size: 1.5rem; }
-.detail tbody td { padding: 11px 18px; }
-.detail .meta { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; white-space: nowrap; text-align: right; }
+.detail .panel-title { font-size: 1.3rem; }
+.detail tbody td { padding: 10px 16px; }
+.detail .meta { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; white-space: nowrap; text-align: right; }
 
-/* On the TV, larger everything */
+/* On the TV, larger than mobile, but no longer oversized */
 @media (min-width: 1600px) {
-  .panel-title { font-size: 1.45rem; }
-  tbody td { font-size: 1.15rem; padding: 12px 22px; }
-  thead th { font-size: 0.8rem; }
+  .panel-title { font-size: 1.25rem; }
+  tbody td { font-size: 0.95rem; padding: 10px 18px; }
+  thead th { font-size: 0.72rem; }
 }
 
 .foot {
@@ -184,7 +187,7 @@ input:focus, select:focus { outline: none; border-color: var(--typing); }
 input::placeholder { color: var(--text-dim); }
 .form-msg { font-size: 0.85rem; min-height: 1.1em; margin: 14px 0 0; }
 .form-msg.ok { color: var(--typing); }
-.form-msg.err { color: var(--debug); }
+.form-msg.err { color: var(--error); }
 
 
 /* ============================================================================
@@ -203,7 +206,8 @@ input::placeholder { color: var(--text-dim); }
   --speedcube: #c67c00;
   --chess: #7c3fd6;
   --typing: #0e9f6e;
-  --debug: #d63a52;
+  --debug: #2563c9;
+  --error: #d63a52;
 }
 :root[data-theme="light"] body {
   background:
@@ -236,18 +240,22 @@ input::placeholder { color: var(--text-dim); }
   box-shadow: 0 12px 34px rgba(0,0,0,0.35);
 }
 
-/* ---------- header QR (§1: moved between brand and Register button) ---------- */
-.topbar-qr { display: flex; align-items: center; gap: 10px; }
-.topbar-qr .qr-img-sm {
-  width: 46px; height: 46px; background: #fff; border-radius: 8px; padding: 4px;
-  display: block;
+/* ---------- toolbar row: tabs + search on the left, QR on the right ---------- */
+.toolbar-row { display: flex; align-items: stretch; gap: 12px; }
+.toolbar-stack { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.toolbar-qr {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  padding: 16px clamp(12px, 1.5vw, 20px) 8px 0;
 }
-.topbar-qr .qr-label {
-  display: flex; flex-direction: column; line-height: 1.2;
-  color: var(--text-dim); font-size: 0.7rem; max-width: 120px;
+.qr-img-corner {
+  width: 92px; height: 92px; background: #fff; border-radius: 16px; padding: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3); display: block;
 }
-@media (max-width: 760px) { .topbar-qr .qr-label { display: none; } }
-@media (max-width: 480px) { .topbar-qr { display: none; } }
+@media (max-width: 640px) {
+  .toolbar-row { flex-direction: column; }
+  .toolbar-qr { justify-content: flex-start; padding: 4px clamp(12px, 1.5vw, 20px) 0; }
+  .qr-img-corner { width: 64px; height: 64px; }
+}
 
 /* ---------- board search (§4) ---------- */
 .board-toolbar { padding: 14px clamp(12px, 1.5vw, 20px) 0; }
@@ -259,19 +267,41 @@ input::placeholder { color: var(--text-dim); }
 .search-box svg { flex: none; opacity: 0.6; }
 .search-box input {
   flex: 1; background: transparent; border: none; color: var(--text);
-  font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 9px 0; outline: none;
+  font-family: 'Inter', sans-serif; font-size: 0.82rem; padding: 8px 0; outline: none;
 }
 .search-box input::placeholder { color: var(--text-dim); }
 .search-box button {
   border: none; background: var(--surface-2); color: var(--text);
-  font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 0.82rem;
-  padding: 9px 14px; border-radius: 9px; cursor: pointer; white-space: nowrap;
+  font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 0.76rem;
+  padding: 8px 14px; border-radius: 9px; cursor: pointer; white-space: nowrap;
 }
 .search-box button:hover { color: var(--gold); }
-.search-empty { color: var(--text-dim); padding: 4px clamp(12px, 1.5vw, 20px) 0; font-size: 0.88rem; }
+.search-empty { color: var(--text-dim); padding: 4px clamp(12px, 1.5vw, 20px) 0; font-size: 0.8rem; }
 
-/* ---------- volunteer ("By") column ---------- */
-.by { color: var(--text-dim); font-size: 0.8rem; white-space: nowrap; }
+/* row highlighted by a successful full-database search (§ search fix) */
+tbody tr.search-hit {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+  background: rgba(255, 214, 107, 0.1);
+}
+tbody tr.search-hit td.rank { color: var(--gold); font-weight: 800; }
+
+/* "All Challenges" cross-board search result summary */
+.search-summary {
+  background: var(--surface); border: 1px solid var(--gold); border-radius: var(--radius);
+  padding: 14px clamp(12px, 1.5vw, 20px); margin-bottom: 16px;
+}
+.search-summary .ss-head { font-weight: 700; color: var(--gold); font-size: 0.85rem; margin-bottom: 8px; }
+.search-summary .ss-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0; border-top: 1px solid var(--line); font-size: 0.85rem;
+}
+.search-summary .ss-row:first-of-type { border-top: none; }
+.search-summary .ss-ch { color: var(--text-dim); }
+.search-summary .ss-val { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+.search-summary .ss-val.muted { font-family: inherit; font-weight: 400; color: var(--text-dim); }
+
+/* ---------- volunteer contact hidden from public boards ---------- */
 
 /* ---------- pagination (§2) ---------- */
 .pager {
@@ -280,12 +310,12 @@ input::placeholder { color: var(--text-dim); }
 }
 .pg-btn {
   border: 1px solid var(--line); background: var(--surface); color: var(--text);
-  font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 0.85rem;
+  font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 0.78rem;
   padding: 8px 16px; border-radius: 999px; cursor: pointer; transition: all .15s;
 }
 .pg-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .pg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.pg-info { color: var(--text-dim); font-size: 0.82rem; font-family: 'JetBrains Mono', monospace; }
+.pg-info { color: var(--text-dim); font-size: 0.76rem; font-family: 'JetBrains Mono', monospace; }
 
 /* Detailed view has more columns now (branch/sec, score cols, recorded, by) —
    let it scroll sideways on narrow phones instead of clipping (§2/§12). */

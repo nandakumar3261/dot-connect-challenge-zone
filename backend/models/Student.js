@@ -18,7 +18,11 @@ const studentSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
 
   // Required, used for prize communication, never shown on public boards (§5).
-  mobile: { type: String, required: true, trim: true },
+  // Exactly 10 digits, and unique — one profile per phone number.
+  mobile: {
+    type: String, required: true, trim: true, unique: true,
+    match: [/^[0-9]{10}$/, 'Mobile number must be exactly 10 digits.']
+  },
 
   // Required controlled selection (§5).
   gender: { type: String, required: true, enum: GENDERS },

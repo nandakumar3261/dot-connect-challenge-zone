@@ -26,7 +26,7 @@
   --speedcube: #f5a524;
   --chess: #8b7cf6;
   --typing: #2dd4bf;
-  --debug: #f4506b;
+  --debug: #4ea1ff;
 }
 
 * { box-sizing: border-box; }
@@ -375,7 +375,7 @@ label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-
   --speedcube: #c67c00;
   --chess: #7c3fd6;
   --typing: #12a37e;
-  --debug: #d63a52;
+  --debug: #2563c9;
 }
 :root[data-theme="light"] body { background: var(--bg); }
 :root[data-theme="light"] .signin-page {

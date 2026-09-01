@@ -314,6 +314,11 @@ if (consoleRoot) {
     } catch (err) { /* handled */ }
   });
 
+  // Keep the mobile field digits-only as the user types (max 10).
+  document.getElementById('regMobile').addEventListener('input', (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+  });
+
   // ---- REGISTER ----
   document.getElementById('registerBtn').addEventListener('click', async () => {
     const msg = document.getElementById('registerMsg');
@@ -328,6 +333,9 @@ if (consoleRoot) {
     };
     if (!payload.name || !payload.mobile || !payload.gender || !payload.branch || !payload.section) {
       msg.textContent = 'Name, mobile, gender, branch and section are required.'; msg.className = 'form-msg err'; return;
+    }
+    if (!/^[0-9]{10}$/.test(payload.mobile)) {
+      msg.textContent = 'Mobile number must be exactly 10 digits.'; msg.className = 'form-msg err'; return;
     }
     try {
       const res = await authedFetch('/students', { method: 'POST', body: JSON.stringify(payload) });

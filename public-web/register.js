@@ -13,6 +13,11 @@ function esc(s) { const d = document.createElement('div'); d.textContent = s == 
   }
 })();
 
+// Keep the mobile field digits-only as the user types (max 10).
+document.getElementById('regMobile').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+});
+
 document.getElementById('registerBtn').addEventListener('click', async () => {
   const msg = document.getElementById('registerMsg');
   msg.textContent = ''; msg.className = 'form-msg';
@@ -27,6 +32,11 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
   };
   if (!payload.name || !payload.mobile || !payload.gender || !payload.branch || !payload.section) {
     msg.textContent = 'Name, mobile, gender, branch and section are required.';
+    msg.className = 'form-msg err';
+    return;
+  }
+  if (!/^[0-9]{10}$/.test(payload.mobile)) {
+    msg.textContent = 'Mobile number must be exactly 10 digits.';
     msg.className = 'form-msg err';
     return;
   }

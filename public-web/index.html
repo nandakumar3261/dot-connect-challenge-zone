@@ -23,10 +23,6 @@
         <span class="brand-sub">Challenge Zone · Sept 2–11, 2026</span>
       </span>
     </div>
-    <div class="topbar-qr" id="topbarQr">
-      <img id="qrHeaderImg" class="qr-img-sm" alt="Scan to open this leaderboard on your phone">
-      <span class="qr-label">Scan to open<br>on your phone</span>
-    </div>
     <div class="topbar-right">
       <a href="register.html" class="btn btn-primary">Register</a>
       <button id="themeToggle" class="theme-toggle" title="Toggle light / dark" aria-label="Toggle light or dark mode">🌙</button>
@@ -36,17 +32,25 @@
     </div>
   </header>
 
-  <nav class="tabs" id="tabs" aria-label="Challenge selector">
-    <!-- tabs injected from /api/config; "All Challenges" is first & default -->
-  </nav>
+  <div class="toolbar-row">
+    <div class="toolbar-stack">
+      <nav class="tabs" id="tabs" aria-label="Challenge selector">
+        <!-- tabs injected from /api/config; "All Challenges" is first & default -->
+      </nav>
 
-  <div class="board-toolbar">
-    <div class="search-box">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="boardSearch" type="text" placeholder="Search by name, roll number, or DoTT ID…" autocomplete="off">
-      <button id="boardSearchBtn" type="button">Search</button>
+      <div class="board-toolbar">
+        <div class="search-box">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="boardSearch" type="text" placeholder="Search by name, roll number, or DoTT ID…" autocomplete="off">
+          <button id="boardSearchBtn" type="button">Search</button>
+        </div>
+        <p class="search-empty" id="searchEmpty" hidden></p>
+      </div>
     </div>
-    <p class="search-empty" id="searchEmpty" hidden></p>
+
+    <div class="toolbar-qr" id="topbarQr">
+      <img id="qrHeaderImg" class="qr-img-corner" alt="Scan to open this leaderboard on your phone">
+    </div>
   </div>
 
   <main class="board" id="board">

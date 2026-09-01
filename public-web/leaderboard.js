@@ -29,34 +29,126 @@ function infoButton(key) {
   return `<button class="info-btn" data-hint="${esc(hintFor(key))}" title="What does this score mean?" aria-label="What does this score mean?">🔍</button>`;
 }
 
-// ---- search (§4): filters whichever rows are currently rendered, by name,
-// roll number, or DoTT ID. Works across both the All Challenges grid and a
-// single-challenge detail table since both use the same row markup.
+// ---- search (§4): a real lookup across the FULL dataset, not just whatever
+// rows happen to be rendered on the current page — a student's whole point
+// in searching is to find their rank even when it's on page 4, or outside
+// the Top 10 shown on the All Challenges board.
 let searchQuery = '';
-function applySearchFilter() {
-  const q = searchQuery.trim().toLowerCase();
-  const rows = document.querySelectorAll('#board tbody tr:not(.empty)');
-  let shown = 0;
-  rows.forEach(tr => {
-    if (!q) { tr.style.display = ''; shown++; return; }
-    const hay = `${tr.querySelector('.name')?.textContent || ''} ${tr.querySelector('.ident')?.textContent || ''}`.toLowerCase();
-    const match = hay.includes(q);
-    tr.style.display = match ? '' : 'none';
-    if (match) shown++;
+let fullBoardCache = {}; // lazy, per-challenge: full (up to 200) rows, used only when searching from "All Challenges"
+
+function matchesQuery(row, q) {
+  const hay = `${row.name || ''} ${row.identifier || ''} ${row.rollNumber || ''} ${row.dotId || ''}`.toLowerCase();
+  return hay.includes(q);
+}
+
+async function loadFullBoard(key) {
+  if (fullBoardCache[key]) return fullBoardCache[key];
+  const data = await fetch(`${API}/leaderboard/${key}`).then(r => r.json());
+  fullBoardCache[key] = data.rows;
+  return data.rows;
+}
+
+function clearSearchHighlights() {
+  document.querySelectorAll('#board tbody tr.search-hit').forEach(tr => tr.classList.remove('search-hit'));
+}
+
+function renderSearchSummary(payload) {
+  let box = document.getElementById('searchSummary');
+  if (!payload) { if (box) box.remove(); return; }
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'searchSummary';
+    box.className = 'search-summary';
+  }
+  document.getElementById('board').prepend(box);
+  const rows = payload.results.map(({ challenge, hit }) => hit
+    ? `<div class="ss-row"><span class="ss-ch">${esc(challenge.icon)} ${esc(challenge.name)}</span><span class="ss-val">Rank #${hit.rank} — ${esc(hit.summary || '')}</span></div>`
+    : `<div class="ss-row"><span class="ss-ch">${esc(challenge.icon)} ${esc(challenge.name)}</span><span class="ss-val muted">Not yet recorded</span></div>`
+  ).join('');
+  box.innerHTML = `<div class="ss-head">Results for "${esc(payload.query)}"</div>${rows}`;
+}
+
+function highlightAndReveal(row) {
+  requestAnimationFrame(() => {
+    document.querySelectorAll('#board tbody tr').forEach(tr => {
+      const name = tr.querySelector('.name')?.textContent;
+      const ident = tr.querySelector('.ident')?.textContent;
+      if (name === row.name && ident === row.identifier) {
+        tr.classList.add('search-hit');
+        tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
   });
+}
+
+// Runs a real search: within the full dataset of the current detail board,
+// or — from "All Challenges" — across all four full boards at once, so the
+// answer to "where do I stand?" is never limited by what's on screen.
+async function runSearch() {
+  const input = document.getElementById('boardSearch');
   const note = document.getElementById('searchEmpty');
-  if (note) {
-    note.hidden = !(q && rows.length && shown === 0);
-    if (!note.hidden) note.textContent = `No students match "${searchQuery.trim()}" on this board.`;
+  const raw = input.value.trim();
+  const q = raw.toLowerCase();
+
+  clearSearchHighlights();
+
+  if (!q) {
+    note.hidden = true;
+    renderSearchSummary(null);
+    return;
+  }
+
+  if (current === 'all') {
+    note.hidden = false;
+    note.textContent = `Searching all ${config.challenges.length} challenges…`;
+    try {
+      const results = [];
+      for (const c of config.challenges) {
+        const rows = await loadFullBoard(c.key);
+        results.push({ challenge: c, hit: rows.find(r => matchesQuery(r, q)) || null });
+      }
+      renderSearchSummary({ query: raw, results });
+      const anyHit = results.some(r => r.hit);
+      note.hidden = anyHit;
+      if (!anyHit) note.textContent = `No student matching "${raw}" found in any challenge.`;
+    } catch (err) {
+      note.hidden = false;
+      note.textContent = 'Could not search right now — try again in a moment.';
+    }
+  } else {
+    renderSearchSummary(null);
+    if (!detailCache || !detailCache.rows.length) {
+      note.hidden = false;
+      note.textContent = detailCache ? 'No results recorded yet on this board.' : 'Still loading…';
+      return;
+    }
+    const idx = detailCache.rows.findIndex(r => matchesQuery(r, q));
+    if (idx === -1) {
+      note.hidden = false;
+      note.textContent = `No student matching "${raw}" found among all ${detailCache.rows.length} recorded results.`;
+      return;
+    }
+    const hit = detailCache.rows[idx];
+    note.hidden = false;
+    note.textContent = `Found ${hit.name} — rank #${hit.rank} of ${detailCache.rows.length}.`;
+    detailPage = Math.floor(idx / PAGE_SIZE);
+    paintDetail();
+    highlightAndReveal(hit);
   }
 }
+
 function wireSearch() {
   const input = document.getElementById('boardSearch');
   const btn = document.getElementById('boardSearchBtn');
   if (!input) return;
-  input.addEventListener('input', () => { searchQuery = input.value; applySearchFilter(); });
-  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') applySearchFilter(); });
-  if (btn) btn.addEventListener('click', () => { searchQuery = input.value; applySearchFilter(); input.focus(); });
+  // Deliberate, not as-you-type: a full-database search does real network
+  // work (especially from "All Challenges"), so it fires on Enter/click only.
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') runSearch(); });
+  if (btn) btn.addEventListener('click', () => runSearch());
+  input.addEventListener('input', () => {
+    searchQuery = input.value;
+    if (!searchQuery.trim()) { document.getElementById('searchEmpty').hidden = true; renderSearchSummary(null); clearSearchHighlights(); }
+  });
 }
 
 // ---- clock ----
@@ -80,6 +172,11 @@ function buildTabs() {
     btn.addEventListener('click', () => {
       current = btn.dataset.key;
       detailPage = 0; detailCache = null;
+      // switching context invalidates whatever search was showing
+      document.getElementById('boardSearch').value = '';
+      document.getElementById('searchEmpty').hidden = true;
+      renderSearchSummary(null);
+      clearSearchHighlights();
       syncTabs(); render();
     })
   );
@@ -138,20 +235,21 @@ async function renderAll() {
       <section class="panel c-${c.key}">
         <div class="panel-head">
           <span class="panel-icon">${esc(c.icon)}</span>
-          <span class="panel-title">${esc(c.name)}${c.provisional ? '<span class="provisional">provisional</span>' : ''}</span>
+          <span class="panel-title">${esc(c.name)}</span>
           ${infoButton(c.key)}
           <span class="panel-note">Top 10 · ${esc(RULE_NOTE[c.key] || '')}</span>
         </div>
-        <table>
-          <thead><tr><th>#</th><th>Name</th><th>Roll / ID</th>${colHeads}</tr></thead>
-          <tbody>${body}</tbody>
-        </table>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>#</th><th>Name</th><th>Roll / ID</th>${colHeads}</tr></thead>
+            <tbody>${body}</tbody>
+          </table>
+        </div>
       </section>`;
   }).join('');
 
   board.innerHTML = `<div class="grid-all">${panels}</div>`;
   wireInfoButtons(board);
-  applySearchFilter();
 }
 
 // ---- Detailed single-challenge view (§12) with pagination (§2) ----
@@ -178,10 +276,9 @@ function paintDetail() {
             <td>${esc(r.branch)} / ${esc(r.section)}</td>
             ${cells}
             <td class="meta">${esc(when)}</td>
-            <td class="by">${esc(r.recordedBy)}</td>
           </tr>`;
       }).join('')
-    : `<tr class="empty"><td colspan="${5 + c.columns.length}">No results recorded yet.</td></tr>`;
+    : `<tr class="empty"><td colspan="${4 + c.columns.length}">No results recorded yet.</td></tr>`;
 
   const from = total ? start + 1 : 0;
   const to = Math.min(start + PAGE_SIZE, total);
@@ -196,24 +293,25 @@ function paintDetail() {
     <section class="panel detail c-${c.key}">
       <div class="panel-head">
         <span class="panel-icon">${esc(c.icon)}</span>
-        <span class="panel-title">${esc(c.name)}${c.provisional ? '<span class="provisional">rules to be finalised</span>' : ''}</span>
+        <span class="panel-title">${esc(c.name)}</span>
         ${infoButton(c.key)}
         <span class="panel-note">${esc(RULE_NOTE[c.key] || '')}</span>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>#</th><th>Name</th><th>Roll / ID</th><th>Branch / Sec</th>
-            ${colHeads}<th style="text-align:right">Recorded</th><th>By</th>
-          </tr>
-        </thead>
-        <tbody>${bodyRows}</tbody>
-      </table>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Name</th><th>Roll / ID</th><th>Branch / Sec</th>
+              ${colHeads}<th style="text-align:right">Recorded</th>
+            </tr>
+          </thead>
+          <tbody>${bodyRows}</tbody>
+        </table>
+      </div>
       ${pager}
     </section>`;
 
   wireInfoButtons(board);
-  applySearchFilter();
   board.querySelectorAll('.pg-btn').forEach(btn => btn.addEventListener('click', () => {
     if (btn.dataset.pg === 'prev' && detailPage > 0) detailPage--;
     if (btn.dataset.pg === 'next') detailPage++;
@@ -231,6 +329,13 @@ async function render() {
   try {
     if (current === 'all') await renderAll();
     else await renderDetail(current);
+    // Keep an active search live across the 10s auto-refresh (e.g. someone
+    // watching their own name/rank update) rather than freezing it in place.
+    const box = document.getElementById('boardSearch');
+    if (box && box.value.trim()) {
+      fullBoardCache = {}; // don't show a stale rank on a refreshed board
+      await runSearch();
+    }
   } catch (err) {
     document.getElementById('board').innerHTML = '<p class="loading">Could not reach the server — retrying…</p>';
   }
