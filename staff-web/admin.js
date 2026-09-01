@@ -372,7 +372,11 @@ async function downloadCsv(path, filename) {
   URL.revokeObjectURL(url);
 }
 document.getElementById('exportStudentsBtn').addEventListener('click', () => downloadCsv('/export/students.csv', 'dotconnect-students.csv'));
-document.getElementById('exportResultsBtn').addEventListener('click', () => downloadCsv('/export/results.csv', 'dotconnect-results.csv'));
+document.getElementById('exportResultsBtn').addEventListener('click', () => {
+  const challenge = document.getElementById('exportChallengeSelect').value || 'all';
+  const filename = challenge === 'all' ? 'dotconnect-results-all.csv' : `dotconnect-results-${challenge}.csv`;
+  downloadCsv(`/export/results.csv?challenge=${encodeURIComponent(challenge)}`, filename);
+});
 
 // ============================================================================
 // INIT
@@ -385,6 +389,11 @@ document.getElementById('exportResultsBtn').addEventListener('click', () => down
   const optHtml = config.challenges.map(c => `<option value="${c.key}">${esc(c.name)}</option>`).join('');
   document.getElementById('resultChallengeFilter').insertAdjacentHTML('beforeend', optHtml);
   buildPermChips('volPerms', []);
+
+  // Results export: default to the first game (a proper per-field export),
+  // with "All challenges" as an explicit fallback option at the end.
+  document.getElementById('exportChallengeSelect').innerHTML =
+    optHtml + `<option value="all">All challenges (combined summary)</option>`;
 
   // sidebar: "All Challenges" + one shortcut per challenge, jumping to the
   // Results tab pre-filtered to that challenge (or reset for "All").

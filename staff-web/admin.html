@@ -158,6 +158,14 @@
             <div class="card-head"><h2>Export data</h2><p class="muted">Downloads as CSV. Student export includes mobile numbers for prize contact; result exports never do.</p></div>
             <div class="export-row">
               <button id="exportStudentsBtn" class="btn btn-primary">Download students.csv</button>
+            </div>
+
+            <h3 class="subhead">Results</h3>
+            <p class="muted">Pick a game to get one column per field the volunteer actually entered (e.g. Chess: separate Puzzles, Mistakes, Minutes, Seconds columns) — clearer than one mixed "Result" column.</p>
+            <div class="export-row">
+              <select id="exportChallengeSelect" class="input">
+                <!-- populated from /api/config: one option per game, plus "All challenges" -->
+              </select>
               <button id="exportResultsBtn" class="btn btn-primary">Download results.csv</button>
             </div>
           </div>
