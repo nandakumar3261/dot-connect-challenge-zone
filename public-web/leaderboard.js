@@ -341,7 +341,7 @@ async function render() {
   }
 }
 
-// ---- header counts: registered + participants per challenge (§ new) ----
+// ---- header counts: participants per challenge ----
 async function loadTopbarStats() {
   const el = document.getElementById('topbarStats');
   if (!el) return;
@@ -352,11 +352,7 @@ async function loadTopbarStats() {
         <span class="topbar-stat-icon">${esc(c.icon)}</span>
         <strong>${stats.participants[c.key] || 0}</strong>
       </span>`).join('');
-    el.innerHTML = `
-      <span class="topbar-stat" title="Students registered">
-        <span class="topbar-stat-icon">👥</span>
-        <strong>${stats.totalStudents || 0}</strong>
-      </span>${chips}`;
+    el.innerHTML = chips;
   } catch (err) {
     el.innerHTML = '';
   }
