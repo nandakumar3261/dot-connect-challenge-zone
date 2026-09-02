@@ -14,6 +14,7 @@ let config = null;      // { challenges: [...] }
 let current = 'all';    // selected tab key
 let detailCache = null; // { key, challenge, rows }
 let detailPage = 0;     // current page in the detailed view (§2)
+let statsCache = { participants: {} }; // last-fetched /api/stats, for panel-head counts
 
 function esc(s) {
   const d = document.createElement('div');
@@ -237,6 +238,7 @@ async function renderAll() {
           <span class="panel-icon">${esc(c.icon)}</span>
           <span class="panel-title">${esc(c.name)}</span>
           ${infoButton(c.key)}
+          <span class="panel-count" title="Students who took part in ${esc(c.name)}">${statsCache.participants[c.key] || 0} joined</span>
           <span class="panel-note">Top 10 · ${esc(RULE_NOTE[c.key] || '')}</span>
         </div>
         <div class="table-scroll">
@@ -295,6 +297,7 @@ function paintDetail() {
         <span class="panel-icon">${esc(c.icon)}</span>
         <span class="panel-title">${esc(c.name)}</span>
         ${infoButton(c.key)}
+        <span class="panel-count" title="Students who took part in ${esc(c.name)}">${total} joined</span>
         <span class="panel-note">${esc(RULE_NOTE[c.key] || '')}</span>
       </div>
       <div class="table-scroll">
@@ -344,24 +347,26 @@ async function render() {
 // ---- header counts: participants per challenge ----
 async function loadTopbarStats() {
   const el = document.getElementById('topbarStats');
-  if (!el) return;
   try {
     const stats = await fetch(`${API}/stats`).then(r => r.json());
-    // "Registered" here means distinct students with at least one recorded
-    // result — read live from the Result collection and de-duplicated across
-    // challenges, not a stored count. A student who did 3 challenges is 1.
-    const registeredChip = `
-      <span class="topbar-stat topbar-stat-total" title="Distinct students with at least one recorded result">
-        <strong>${stats.registeredFromResults || 0}</strong> registered
-      </span>`;
-    const chips = config.challenges.map(c => `
-      <span class="topbar-stat" title="${esc(c.name)}">
-        <span class="topbar-stat-icon">${esc(c.icon)}</span>
-        <strong>${stats.participants[c.key] || 0}</strong>
-      </span>`).join('');
-    el.innerHTML = registeredChip + chips;
+    statsCache = stats;
+    if (el) {
+      // "Registered" here means distinct students with at least one recorded
+      // result — read live from the Result collection and de-duplicated across
+      // challenges, not a stored count. A student who did 3 challenges is 1.
+      const registeredChip = `
+        <span class="topbar-stat topbar-stat-total" title="Distinct students with at least one recorded result">
+          <strong>${stats.registeredFromResults || 0}</strong> registered
+        </span>`;
+      const chips = config.challenges.map(c => `
+        <span class="topbar-stat" title="${esc(c.name)}">
+          <span class="topbar-stat-icon">${esc(c.icon)}</span>
+          <strong>${stats.participants[c.key] || 0}</strong>
+        </span>`).join('');
+      el.innerHTML = registeredChip + chips;
+    }
   } catch (err) {
-    el.innerHTML = '';
+    if (el) el.innerHTML = '';
   }
 }
 
