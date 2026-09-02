@@ -59,6 +59,8 @@ body {
 }
 .topbar-stat-icon { font-size: 0.85rem; line-height: 1; }
 .topbar-stat strong { color: var(--text); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.85rem; }
+.topbar-stat-total { border-color: var(--gold); color: var(--text); }
+.topbar-stat-total strong { color: var(--gold); }
 @media (max-width: 980px) { .topbar-stats { display: none; } }
 
 .live { display: flex; align-items: center; gap: 8px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }

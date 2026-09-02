@@ -347,12 +347,19 @@ async function loadTopbarStats() {
   if (!el) return;
   try {
     const stats = await fetch(`${API}/stats`).then(r => r.json());
+    // "Registered" here means distinct students with at least one recorded
+    // result — read live from the Result collection and de-duplicated across
+    // challenges, not a stored count. A student who did 3 challenges is 1.
+    const registeredChip = `
+      <span class="topbar-stat topbar-stat-total" title="Distinct students with at least one recorded result">
+        <strong>${stats.registeredFromResults || 0}</strong> registered
+      </span>`;
     const chips = config.challenges.map(c => `
       <span class="topbar-stat" title="${esc(c.name)}">
         <span class="topbar-stat-icon">${esc(c.icon)}</span>
         <strong>${stats.participants[c.key] || 0}</strong>
       </span>`).join('');
-    el.innerHTML = chips;
+    el.innerHTML = registeredChip + chips;
   } catch (err) {
     el.innerHTML = '';
   }

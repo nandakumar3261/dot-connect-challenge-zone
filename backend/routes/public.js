@@ -130,6 +130,7 @@ router.get('/qr', async (req, res) => {
 router.get('/stats', async (req, res) => {
   try {
     const totalStudents = await Student.countDocuments();
+
     const rows = await Result.aggregate([
       { $match: { status: 'active' } },
       { $group: { _id: '$challenge', count: { $sum: 1 } } }
@@ -137,7 +138,19 @@ router.get('/stats', async (req, res) => {
     const participants = {};
     CHALLENGE_KEYS.forEach(k => { participants[k] = 0; });
     rows.forEach(r => { participants[r._id] = r.count; });
-    res.json({ totalStudents, participants });
+
+    // Distinct students with at least one active result, ACROSS all challenges
+    // combined — a student who did 3 challenges still counts once. This is
+    // computed live from the Result collection every request; it is never
+    // written/stored anywhere, so it can't drift out of sync with reality.
+    const uniqueAgg = await Result.aggregate([
+      { $match: { status: 'active' } },
+      { $group: { _id: '$student' } },
+      { $count: 'count' }
+    ]);
+    const registeredFromResults = uniqueAgg[0]?.count || 0;
+
+    res.json({ totalStudents, registeredFromResults, participants });
   } catch (err) {
     res.status(500).json({ error: 'Could not load stats.' });
   }
