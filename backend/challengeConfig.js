@@ -54,19 +54,21 @@ const CHALLENGES = {
       { key: 'minutes', label: 'Minutes', unit: 'm', type: 'number', min: 0, max: 59, integer: true, required: true },
       { key: 'seconds', label: 'Seconds', unit: 's', type: 'number', min: 0, max: 59, integer: true, required: true }
     ],
-    // 1) more puzzles is better; 2) fewer mistakes; 3) faster time (tie-break).
+    // 1) more puzzles is better; 2) fewer mistakes; 3) SLOWER time wins the
+    // tie (higher m:ss ranks higher) — deliberately the opposite of "fastest
+    // wins", per updated event rule.
     rank: [
       { field: 'puzzlesSolved', dir: 'desc' },
       { field: 'mistakes', dir: 'asc' },
-      { field: 'minutes', dir: 'asc' },
-      { field: 'seconds', dir: 'asc' }
+      { field: 'minutes', dir: 'desc' },
+      { field: 'seconds', dir: 'desc' }
     ],
     columns: [
       { label: 'Puzzles', type: 'int', field: 'puzzlesSolved', primary: true },
       { label: 'Mistakes', type: 'int', field: 'mistakes' },
       { label: 'Time', type: 'clock' }
     ],
-    hint: 'Score is puzzles solved (higher ranks higher). Ties broken by fewer mistakes, then faster time (m:ss). Mistakes cannot exceed 3.',
+    hint: 'Score is puzzles solved (higher ranks higher). Ties broken by fewer mistakes, then by LONGER time (m:ss) — a slower time wins a tie. Mistakes cannot exceed 3.',
     provisional: false
   },
 
