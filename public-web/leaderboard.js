@@ -341,6 +341,27 @@ async function render() {
   }
 }
 
+// ---- header counts: registered + participants per challenge (§ new) ----
+async function loadTopbarStats() {
+  const el = document.getElementById('topbarStats');
+  if (!el) return;
+  try {
+    const stats = await fetch(`${API}/stats`).then(r => r.json());
+    const chips = config.challenges.map(c => `
+      <span class="topbar-stat" title="${esc(c.name)}">
+        <span class="topbar-stat-icon">${esc(c.icon)}</span>
+        <strong>${stats.participants[c.key] || 0}</strong>
+      </span>`).join('');
+    el.innerHTML = `
+      <span class="topbar-stat" title="Students registered">
+        <span class="topbar-stat-icon">👥</span>
+        <strong>${stats.totalStudents || 0}</strong>
+      </span>${chips}`;
+  } catch (err) {
+    el.innerHTML = '';
+  }
+}
+
 async function init() {
   try {
     const qrImg = document.getElementById('qrHeaderImg');
@@ -349,8 +370,9 @@ async function init() {
 
     config = await fetch(`${API}/config`).then(r => r.json());
     buildTabs();
-    await render();
+    await Promise.all([render(), loadTopbarStats()]);
     setInterval(render, REFRESH_MS);
+    setInterval(loadTopbarStats, REFRESH_MS);
   } catch (err) {
     document.getElementById('board').innerHTML = '<p class="loading">Could not load the leaderboard.</p>';
   }
