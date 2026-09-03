@@ -400,3 +400,42 @@ button.theme-toggle.icon-btn { font-size: 1rem; line-height: 1; }
   display: inline-flex; align-items: center; justify-content: center; font-size: 1.05rem;
 }
 .theme-toggle-fixed:hover { border-color: var(--text-dim); }
+
+/* ---------- Day Wise Statistics ---------- */
+.dw-head-icon { width: 18px; height: 18px; color: var(--accent); margin-right: 2px; vertical-align: -3px; }
+.dw-head-icon svg { width: 100%; height: 100%; }
+
+.dw-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+  margin: 18px 0 22px;
+}
+.dw-card {
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px;
+}
+.dw-card-top { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.dw-card-icon {
+  flex: none; width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+}
+.dw-card-icon svg { width: 19px; height: 19px; }
+.dw-card-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--text-dim); }
+.dw-card-num { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.7rem; line-height: 1.15; margin: 2px 0; }
+.dw-card-sub { font-size: 0.75rem; }
+.dw-spark { width: 100%; height: 40px; display: block; }
+
+.dw-table th:nth-child(n+3), .dw-table td:nth-child(n+3) { text-align: center; }
+.dw-day-name { font-weight: 700; }
+.dw-badge {
+  display: inline-block; margin-top: 4px; font-size: 0.68rem; font-weight: 700;
+  background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 2px 8px;
+}
+.dw-cell-num { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.05rem; }
+.dw-cell-spark { width: 88px; height: 20px; display: block; margin: 4px auto 0; }
+
+.dw-foot {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
+}

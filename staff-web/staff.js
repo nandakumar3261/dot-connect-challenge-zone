@@ -175,6 +175,31 @@ if (consoleRoot) {
     }
   })();
 
+  // ---- DAY WISE STATISTICS ----
+  async function loadDaywise() {
+    const tbody = document.querySelector('#daywiseTable tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" class="muted">Loading…</td></tr>';
+    try {
+      const { days } = await authedFetch('/results/stats/daywise').then(r => r.json());
+      if (!days.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="muted">No registrations or results recorded yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = days.map(d => `
+        <tr>
+          <td>Day ${d.day}</td>
+          <td>${esc(d.dateLabel)}</td>
+          <td>${d.registrations}</td>
+          <td>${d.participants.speedcube || 0}</td>
+          <td>${d.participants.chess || 0}</td>
+          <td>${d.participants.typing || 0}</td>
+          <td>${d.participants.debug || 0}</td>
+        </tr>`).join('');
+    } catch (err) { /* handled */ }
+  }
+  loadDaywise();
+
   // ---- SEARCH ----
   async function doSearch() {
     const q = document.getElementById('searchInput').value.trim();

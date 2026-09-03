@@ -1,7 +1,7 @@
 const express = require('express');
 const Student = require('../models/Student');
 const Result = require('../models/Result');
-const { CHALLENGES, isChallenge, summariseMetrics } = require('../challengeConfig');
+const { CHALLENGES, CHALLENGE_KEYS, isChallenge, summariseMetrics } = require('../challengeConfig');
 const { isBetter } = require('../lib/ranking');
 const { requireAuth, requireAdmin, requireChallengePermission } = require('../middleware/auth');
 
@@ -53,6 +53,95 @@ router.get('/precheck', async (req, res) => {
     res.status(500).json({ error: 'Pre-check failed.' });
   }
 });
+
+// ---------------------------------------------------------------------------
+// GET /api/results/stats/daywise  — day-by-day breakdown for the "Day wise
+// statistics" tab (visible to admin AND volunteer logins — just requireAuth,
+// same as the rest of this file). Everything here is read from the Results
+// collection only (not Student.createdAt): for each calendar day, "Total
+// Registrations" is the count of DISTINCT students who have at least one
+// active result recorded that day — a student who did 3 challenges the same
+// day still counts once — plus, separately, how many results were recorded
+// that day in each individual challenge. Days are numbered "Day 1, Day 2,
+// ..." in chronological order from the first day with any activity, each
+// paired with its actual date — not hardcoded to a fixed event start date.
+// ---------------------------------------------------------------------------
+router.get('/stats/daywise', async (req, res) => {
+  try {
+    const dayKey = (date) => new Date(date).toISOString().slice(0, 10); // YYYY-MM-DD (UTC)
+
+    const filter = { status: 'active' };
+    if (req.query.from) filter.createdAt = { ...(filter.createdAt || {}), $gte: new Date(`${req.query.from}T00:00:00.000Z`) };
+    if (req.query.to) filter.createdAt = { ...(filter.createdAt || {}), $lte: new Date(`${req.query.to}T23:59:59.999Z`) };
+
+    const results = await Result.find(filter, 'student challenge createdAt').lean();
+
+    const days = new Map(); // 'YYYY-MM-DD' -> { studentSet, participants: {key: Set}, hourlyTotal:[24], hourlyByChallenge:{key:[24]} }
+    function dayBucket(key) {
+      if (!days.has(key)) {
+        const participants = {};
+        const hourlyByChallenge = {};
+        CHALLENGE_KEYS.forEach(k => { participants[k] = new Set(); hourlyByChallenge[k] = new Array(24).fill(0); });
+        days.set(key, { studentSet: new Set(), participants, hourlyTotal: new Array(24).fill(0), hourlyByChallenge });
+      }
+      return days.get(key);
+    }
+
+    results.forEach(r => {
+      const created = new Date(r.createdAt);
+      const bucket = dayBucket(dayKey(created));
+      const hour = created.getUTCHours();
+      bucket.studentSet.add(String(r.student));
+      if (bucket.participants[r.challenge]) bucket.participants[r.challenge].add(String(r.student));
+      bucket.hourlyTotal[hour] += 1;
+      if (bucket.hourlyByChallenge[r.challenge]) bucket.hourlyByChallenge[r.challenge][hour] += 1;
+    });
+
+    const sortedKeys = [...days.keys()].sort();
+    const dayList = sortedKeys.map((key, i) => {
+      const b = days.get(key);
+      const participantCounts = {};
+      CHALLENGE_KEYS.forEach(k => { participantCounts[k] = b.participants[k].size; });
+      return {
+        day: i + 1,
+        date: key,
+        dateLabel: new Date(`${key}T00:00:00Z`).toLocaleDateString('en-US', {
+          weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+        }),
+        isFirstDay: i === 0,
+        registrations: b.studentSet.size,
+        participants: participantCounts,
+        // Hourly counts (raw attempt counts per UTC hour, not de-duplicated by
+        // student) — used only to draw the small activity sparkline per cell.
+        hourly: { total: b.hourlyTotal, ...b.hourlyByChallenge }
+      };
+    });
+
+    // Range-wide totals, de-duplicated the SAME way as each day (a student
+    // active on both Day 1 and Day 2 counts once per day above, but still
+    // only once here overall) — so "17 across 2 days" is a real distinct count.
+    const allStudents = new Set();
+    const allByChallenge = {};
+    CHALLENGE_KEYS.forEach(k => { allByChallenge[k] = new Set(); });
+    results.forEach(r => {
+      allStudents.add(String(r.student));
+      if (allByChallenge[r.challenge]) allByChallenge[r.challenge].add(String(r.student));
+    });
+    const totals = { total: allStudents.size };
+    CHALLENGE_KEYS.forEach(k => { totals[k] = allByChallenge[k].size; });
+
+    res.json({
+      days: dayList,
+      totals,
+      rangeStart: sortedKeys[0] || null,
+      rangeEnd: sortedKeys[sortedKeys.length - 1] || null,
+      lastUpdated: new Date().toISOString()
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not load day-wise stats.' });
+  }
+});
+
 
 // ---------------------------------------------------------------------------
 // POST /api/results   — RECORD (§6, §8, §9, §10)

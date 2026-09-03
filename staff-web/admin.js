@@ -21,7 +21,8 @@ const ICONS = {
   ban: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M5.5 5.5l13 13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
   shield: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 4.5-3 8.5-7 9-4-.5-7-4.5-7-9V6l7-3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>',
   power: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M6.3 6.3a9 9 0 1011.4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-  key: '<svg viewBox="0 0 24 24" fill="none"><circle cx="8" cy="15" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M11 12l9-9M17 6l2.5 2.5M14 9l2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  key: '<svg viewBox="0 0 24 24" fill="none"><circle cx="8" cy="15" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M11 12l9-9M17 6l2.5 2.5M14 9l2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  users: '<svg viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
 // Wrap an icon as a titled/labelled span so it renders identically inside
 // any existing button markup — hover (or focus, for keyboard users) shows
@@ -379,6 +380,164 @@ document.getElementById('exportResultsBtn').addEventListener('click', () => {
 });
 
 // ============================================================================
+// DAY WISE STATISTICS — visible to admin and volunteer logins alike
+// ============================================================================
+
+// ---- tiny inline-SVG chart helpers (no chart library needed) ----
+function sparklinePoints(values, w, h, pad) {
+  const n = values.length;
+  const max = Math.max(1, ...values);
+  if (n <= 1) {
+    const y = h - pad - ((values[0] || 0) / max) * (h - 2 * pad);
+    return [[pad, y], [w - pad, y]];
+  }
+  return values.map((v, i) => [
+    pad + (i / (n - 1)) * (w - 2 * pad),
+    h - pad - (v / max) * (h - 2 * pad)
+  ]);
+}
+// Smooth area+line trend chart, used on each summary card (one point per day).
+function sparklineArea(values, color, w = 150, h = 46) {
+  const pad = 4;
+  const pts = sparklinePoints(values, w, h, pad);
+  const line = pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+  const area = `${pad},${h - pad} ${line} ${w - pad},${h - pad}`;
+  const dots = pts.map(p => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="2.3" fill="${color}"/>`).join('');
+  return `<svg class="dw-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">
+    <polygon points="${area}" fill="${color}" opacity="0.15"></polygon>
+    <polyline points="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+    ${dots}
+  </svg>`;
+}
+// Thin 24-bar hourly-activity chart, used under each number in the table.
+function sparklineBars(values, color, w = 92, h = 22) {
+  const max = Math.max(1, ...values);
+  const n = values.length || 1;
+  const gap = 1.4;
+  const barW = (w - gap * (n - 1)) / n;
+  const bars = values.map((v, i) => {
+    const bh = Math.max(1, (v / max) * (h - 2));
+    const x = i * (barW + gap);
+    return `<rect x="${x.toFixed(1)}" y="${(h - bh).toFixed(1)}" width="${barW.toFixed(1)}" height="${bh.toFixed(1)}" rx="0.5" fill="${color}" opacity="${v > 0 ? 0.9 : 0.22}"/>`;
+  }).join('');
+  return `<svg class="dw-cell-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${bars}</svg>`;
+}
+
+function renderDaywiseCards(data) {
+  const box = document.getElementById('dwCards');
+  if (!box) return;
+  const nDays = data.days.length;
+  const dayWord = `Across ${nDays} day${nDays === 1 ? '' : 's'}`;
+  const orderedKeys = config.challenges.map(c => c.key);
+
+  let html = `
+    <div class="dw-card">
+      <div class="dw-card-top">
+        <span class="dw-card-icon" style="background:var(--accent-soft);color:var(--accent)">${ICONS.users}</span>
+        <div>
+          <div class="dw-card-label">Total Registrations</div>
+          <div class="dw-card-num" style="color:var(--accent)">${data.totals.total}</div>
+          <div class="dw-card-sub muted">${dayWord}</div>
+        </div>
+      </div>
+      ${sparklineArea(data.days.map(d => d.registrations), 'var(--accent)')}
+    </div>`;
+
+  orderedKeys.forEach(key => {
+    const c = challengeByKey[key];
+    if (!c) return;
+    html += `
+      <div class="dw-card">
+        <div class="dw-card-top">
+          <span class="dw-card-icon" style="background:color-mix(in srgb, var(--${key}) 16%, transparent);color:var(--${key})">${esc(c.icon)}</span>
+          <div>
+            <div class="dw-card-label">${esc(c.name)}</div>
+            <div class="dw-card-num" style="color:var(--${key})">${data.totals[key] || 0}</div>
+            <div class="dw-card-sub muted">${dayWord}</div>
+          </div>
+        </div>
+        ${sparklineArea(data.days.map(d => d.participants[key] || 0), `var(--${key})`)}
+      </div>`;
+  });
+
+  box.innerHTML = html;
+}
+
+function dwCell(num, hourly, color) {
+  const bars = (hourly && hourly.length ? hourly : new Array(24).fill(0));
+  return `<div class="dw-cell-num" style="color:${color}">${num}</div>${sparklineBars(bars, color)}`;
+}
+
+function renderDaywiseTable(data) {
+  const tbody = document.querySelector('#daywiseTable tbody');
+  if (!tbody) return;
+  if (!data.days.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="muted">No registrations or results recorded yet.</td></tr>';
+    return;
+  }
+  const orderedKeys = config.challenges.map(c => c.key);
+  tbody.innerHTML = data.days.map(d => `
+    <tr>
+      <td>
+        <div class="dw-day-name">Day ${d.day}</div>
+        ${d.isFirstDay ? '<span class="dw-badge">First Activity Day</span>' : ''}
+      </td>
+      <td>${esc(d.dateLabel)}</td>
+      <td>${dwCell(d.registrations, d.hourly.total, 'var(--accent)')}</td>
+      ${orderedKeys.map(k => `<td>${dwCell(d.participants[k] || 0, d.hourly[k], `var(--${k})`)}</td>`).join('')}
+    </tr>`).join('');
+}
+
+async function loadDaywise() {
+  const tbody = document.querySelector('#daywiseTable tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" class="muted">Loading…</td></tr>';
+
+  const fromInput = document.getElementById('dwFrom');
+  const toInput = document.getElementById('dwTo');
+  const params = new URLSearchParams();
+  if (fromInput && fromInput.value) params.set('from', fromInput.value);
+  if (toInput && toInput.value) params.set('to', toInput.value);
+
+  try {
+    const data = await authedFetch(`/results/stats/daywise${params.toString() ? '?' + params : ''}`).then(r => r.json());
+    renderDaywiseCards(data);
+    renderDaywiseTable(data);
+
+    // Default the date pickers to the detected activity range, but don't
+    // clobber a range the admin deliberately chose.
+    if (fromInput && !fromInput.value && data.rangeStart) fromInput.value = data.rangeStart;
+    if (toInput && !toInput.value && data.rangeEnd) toInput.value = data.rangeEnd;
+
+    const foot = document.getElementById('dwFootNote');
+    if (foot) {
+      const nDays = data.days.length;
+      const updated = data.lastUpdated
+        ? new Date(data.lastUpdated).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+        : '—';
+      foot.textContent = `${nDays} Day${nDays === 1 ? '' : 's'} of Activity  ·  Last updated: ${updated}`;
+    }
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="7" class="muted">Could not load day-wise stats.</td></tr>';
+  }
+}
+
+document.getElementById('dwApplyBtn')?.addEventListener('click', loadDaywise);
+document.getElementById('dwResetBtn')?.addEventListener('click', () => {
+  document.getElementById('dwFrom').value = '';
+  document.getElementById('dwTo').value = '';
+  loadDaywise();
+});
+document.getElementById('dwExportBtn')?.addEventListener('click', () => {
+  const fromInput = document.getElementById('dwFrom');
+  const toInput = document.getElementById('dwTo');
+  const params = new URLSearchParams();
+  if (fromInput && fromInput.value) params.set('from', fromInput.value);
+  if (toInput && toInput.value) params.set('to', toInput.value);
+  downloadCsv(`/export/daywise.csv${params.toString() ? '?' + params : ''}`, 'dotconnect-day-wise-stats.csv');
+});
+
+// ============================================================================
 // INIT
 // ============================================================================
 (async () => {
@@ -422,4 +581,5 @@ document.getElementById('exportResultsBtn').addEventListener('click', () => {
   loadStudents();
   loadResults();
   loadVolunteers();
+  loadDaywise();
 })();

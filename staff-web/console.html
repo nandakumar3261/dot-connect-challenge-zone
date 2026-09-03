@@ -37,6 +37,10 @@
           <svg viewBox="0 0 24 24" fill="none"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM19 8v6M22 11h-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Register Student
         </button>
+        <button class="atab side-item" data-view="daywise">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          Day Wise Statistics
+        </button>
       </nav>
 
       <div class="sidebar-spacer"></div>
@@ -143,6 +147,27 @@
 
           <button id="registerBtn" class="btn btn-primary btn-block">Register student</button>
           <p id="registerMsg" class="form-msg"></p>
+        </section>
+        </section>
+
+        <!-- ===== DAY WISE STATISTICS ===== -->
+        <section class="view" id="view-daywise" hidden>
+        <section class="card span-2">
+          <div class="card-head">
+            <h2>Day Wise Statistics</h2>
+            <p class="muted">Counted from the Results collection: "Total Registrations" is students who took part that day (counted once, even if they did more than one challenge). Day 1 is the first day with any activity.</p>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="daywiseTable">
+              <thead>
+                <tr>
+                  <th>Day</th><th>Date</th><th>Total Registrations</th>
+                  <th>Speed Cube</th><th>Chess Puzzle Rush</th><th>Keyboard Killers</th><th>Debug Challenge</th>
+                </tr>
+              </thead>
+              <tbody><tr><td colspan="7" class="muted">Loading…</td></tr></tbody>
+            </table>
+          </div>
         </section>
         </section>
 

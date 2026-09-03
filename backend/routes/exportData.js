@@ -80,4 +80,47 @@ router.get('/results.csv', async (req, res) => {
   res.type('text/csv').set('Content-Disposition', `attachment; filename="${filename}"`).send(csv);
 });
 
+// GET /api/export/daywise.csv?from=&to=  — mirrors GET /api/results/stats/daywise.
+router.get('/daywise.csv', async (req, res) => {
+  const dayKeyOf = (date) => new Date(date).toISOString().slice(0, 10);
+
+  const filter = { status: 'active' };
+  if (req.query.from) filter.createdAt = { ...(filter.createdAt || {}), $gte: new Date(`${req.query.from}T00:00:00.000Z`) };
+  if (req.query.to) filter.createdAt = { ...(filter.createdAt || {}), $lte: new Date(`${req.query.to}T23:59:59.999Z`) };
+
+  const results = await Result.find(filter, 'student challenge createdAt').lean();
+
+  const days = new Map();
+  results.forEach(r => {
+    const key = dayKeyOf(r.createdAt);
+    if (!days.has(key)) {
+      const perChallenge = {};
+      CHALLENGE_KEYS.forEach(k => { perChallenge[k] = new Set(); });
+      days.set(key, { studentSet: new Set(), perChallenge });
+    }
+    const b = days.get(key);
+    b.studentSet.add(String(r.student));
+    if (b.perChallenge[r.challenge]) b.perChallenge[r.challenge].add(String(r.student));
+  });
+
+  const sortedKeys = [...days.keys()].sort();
+  const headers = ['Day', 'Date', 'Total Registrations', ...CHALLENGE_KEYS.map(k => CHALLENGES[k].name)];
+  const rows = sortedKeys.map((key, i) => {
+    const b = days.get(key);
+    return [`Day ${i + 1}`, key, b.studentSet.size, ...CHALLENGE_KEYS.map(k => b.perChallenge[k].size)];
+  });
+
+  const allStudents = new Set();
+  const allByChallenge = {};
+  CHALLENGE_KEYS.forEach(k => { allByChallenge[k] = new Set(); });
+  results.forEach(r => {
+    allStudents.add(String(r.student));
+    if (allByChallenge[r.challenge]) allByChallenge[r.challenge].add(String(r.student));
+  });
+  rows.push(['TOTAL', '', allStudents.size, ...CHALLENGE_KEYS.map(k => allByChallenge[k].size)]);
+
+  const csv = toCsv(headers, rows);
+  res.type('text/csv').set('Content-Disposition', 'attachment; filename="dotconnect-day-wise-stats.csv"').send(csv);
+});
+
 module.exports = router;

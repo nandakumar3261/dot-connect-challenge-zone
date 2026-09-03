@@ -45,6 +45,10 @@
           <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12M7 10l5 5 5-5M4 21h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Exports
         </button>
+        <button class="atab side-item" data-view="daywise">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 10h18M8 2v4M16 2v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          Day Wise Statistics
+        </button>
       </nav>
 
       <div class="sidebar-spacer"></div>
@@ -167,6 +171,43 @@
                 <!-- populated from /api/config: one option per game, plus "All challenges" -->
               </select>
               <button id="exportResultsBtn" class="btn btn-primary">Download results.csv</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== DAY WISE STATISTICS ===== -->
+        <section class="view" id="view-daywise" hidden>
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h2><span class="btn-icon dw-head-icon"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="4" height="9" rx="1" stroke="currentColor" stroke-width="1.7"/><rect x="10" y="7" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.7"/><rect x="17" y="3" width="4" height="18" rx="1" stroke="currentColor" stroke-width="1.7"/></svg></span> Day Wise Statistics</h2>
+                <p class="muted">Counted from the Results collection: "Total Registrations" is students who took part that day (counted once, even if they did more than one challenge). Day 1 is the first day with any activity.</p>
+              </div>
+              <div class="head-actions">
+                <input type="date" id="dwFrom" class="input" title="From date">
+                <input type="date" id="dwTo" class="input" title="To date">
+                <button id="dwApplyBtn" class="btn btn-ghost btn-sm">Apply</button>
+                <button id="dwResetBtn" class="btn btn-ghost btn-sm">Reset</button>
+              </div>
+            </div>
+
+            <div class="dw-cards" id="dwCards"></div>
+
+            <div class="table-wrap">
+              <table class="data-table dw-table" id="daywiseTable">
+                <thead>
+                  <tr>
+                    <th>Day</th><th>Date</th><th>Total Registrations</th>
+                    <th>Speed Cube</th><th>Chess Puzzle Rush</th><th>Keyboard Killers</th><th>Debug Challenge</th>
+                  </tr>
+                </thead>
+                <tbody><tr><td colspan="7" class="muted">Loading…</td></tr></tbody>
+              </table>
+            </div>
+
+            <div class="dw-foot">
+              <span id="dwFootNote" class="muted"></span>
+              <button id="dwExportBtn" class="btn btn-primary btn-sm">Export Report</button>
             </div>
           </div>
         </section>
