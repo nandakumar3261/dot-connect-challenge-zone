@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-default-theme="dark">
+<head>
+<script>(function(){try{var t=localStorage.getItem('dcz_theme')||document.documentElement.getAttribute('data-default-theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoTT Connect — Upload Video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-logo"><img src="assets/logo-icon.png" alt="DoTT Connect" class="brand-icon-sm"></span>
+        <div>
+          <div class="brand-name">Challenge <br>Zone</div>
+          <span class="brand-sub">Sept 2–11, 2026</span>
+        </div>
+      </div>
+
+      <div class="side-label">Staff</div>
+      <nav>
+        <a href="console.html" class="side-item">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Console
+        </a>
+        <a href="video.html" class="side-item" aria-selected="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M23 7l-7 5 7 5V7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><rect x="1" y="5" width="15" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/></svg>
+          Upload Video
+        </a>
+      </nav>
+
+      <div class="sidebar-spacer"></div>
+
+      <div class="sidebar-foot">
+        <a id="adminLink" href="admin.html" class="side-item" hidden>
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v6c0 4.5-3 8.5-7 9-4-.5-7-4.5-7-9V6l7-3z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          Admin
+        </a>
+        <button id="logoutBtn" class="side-item">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Sign out
+        </button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar-mini">
+        <span class="whoami" id="whoami"></span>
+        <button id="themeToggle" class="icon-btn theme-toggle" title="Toggle light / dark" aria-label="Toggle light or dark mode">🌙</button>
+        <span class="avatar" id="avatarInitials">–</span>
+      </div>
+
+      <main class="console">
+
+        <!-- ============ LOOK UP BY ROLL NUMBER ============ -->
+        <section class="card span-2">
+          <div class="card-head">
+            <h2><span class="step">1</span> Find student</h2>
+            <p class="muted">Enter a roll number to load their details.</p>
+          </div>
+          <div class="search-row">
+            <input id="rollInput" class="input-lg" placeholder="Roll number" autocomplete="off">
+            <button id="lookupBtn" class="btn btn-primary">Find</button>
+          </div>
+          <p id="lookupMsg" class="form-msg"></p>
+        </section>
+
+        <!-- ============ STUDENT DETAILS ============ -->
+        <section class="card span-2" id="studentCard" hidden>
+          <div class="card-head">
+            <h2>Student</h2>
+            <button id="clearBtn" class="btn btn-ghost btn-sm">Clear</button>
+          </div>
+          <div id="studentDetail" class="student-detail"></div>
+        </section>
+
+        <!-- ============ UPLOAD VIDEO ============ -->
+        <section class="card span-2" id="uploadCard" hidden>
+          <div class="card-head">
+            <h2><span class="step">2</span> Upload video</h2>
+            <p class="muted">Stored against this student in a separate video collection.</p>
+          </div>
+
+          <label for="videoFile">Video file</label>
+          <input id="videoFile" type="file" accept="video/*">
+          <div id="videoPreviewWrap" hidden>
+            <video id="videoPreview" controls></video>
+            <p class="muted" id="fileMeta"></p>
+          </div>
+
+          <label for="videoNote">Note <span class="muted">(optional)</span></label>
+          <input id="videoNote" placeholder="e.g. Speed cube attempt, round 2">
+
+          <button id="uploadBtn" class="btn btn-primary btn-block" disabled>Upload video</button>
+          <div id="uploadProgressWrap" class="upload-progress" hidden>
+            <div id="uploadProgressBar"></div>
+          </div>
+          <p id="uploadMsg" class="form-msg"></p>
+        </section>
+
+        <!-- ============ PREVIOUS SUBMISSIONS ============ -->
+        <section class="card span-2" id="historyCard" hidden>
+          <div class="card-head">
+            <h2>Previously uploaded</h2>
+          </div>
+          <div id="submissionList" class="submission-list"></div>
+        </section>
+
+        <p class="muted span-2" id="noStudentNote">No student loaded yet. Enter a roll number above.</p>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="theme.js"></script>
+  <script src="video.js"></script>
+</body>
+</html>

@@ -538,6 +538,105 @@ document.getElementById('dwExportBtn')?.addEventListener('click', () => {
 });
 
 // ============================================================================
+// VIDEO SUBMISSIONS (admin-only: GET /api/videos lists everything, staff
+// AND public self-uploads, with the uploader's/student's details).
+// ============================================================================
+let allVideos = [];
+let videoPage = 1;
+const VIDEO_PAGE_SIZE = 10;
+
+async function loadVideos() {
+  const tbody = document.getElementById('videosBody');
+  tbody.innerHTML = '<tr><td colspan="10" class="muted">Loading…</td></tr>';
+  try {
+    allVideos = await authedFetch('/videos').then(r => r.json());
+    videoPage = 1;
+    renderVideos();
+  } catch (err) { /* handled */ }
+}
+
+function filteredVideos() {
+  const q = document.getElementById('videoSearch').value.trim().toLowerCase();
+  const source = document.getElementById('videoSourceFilter').value;
+  return allVideos.filter(v => {
+    const matchesQ = !q || [v.name, v.rollNumber, v.dotId].some(x => (x || '').toLowerCase().includes(q));
+    const matchesSource = !source || v.source === source;
+    return matchesQ && matchesSource;
+  });
+}
+
+function renderVideos() {
+  const rows = filteredVideos();
+  const totalPages = Math.max(1, Math.ceil(rows.length / VIDEO_PAGE_SIZE));
+  if (videoPage > totalPages) videoPage = totalPages;
+  if (videoPage < 1) videoPage = 1;
+  const start = (videoPage - 1) * VIDEO_PAGE_SIZE;
+  const pageRows = rows.slice(start, start + VIDEO_PAGE_SIZE);
+
+  const tbody = document.getElementById('videosBody');
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="10" class="muted">No videos.</td></tr>'; }
+  else {
+    tbody.innerHTML = pageRows.map(v => {
+      const when = new Date(v.createdAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      // Plain <a> navigation can't send an Authorization header, so the
+      // token rides along as ?token=... (middleware/auth.js accepts either).
+      const tok = encodeURIComponent(store.token);
+      const playUrl = `${v.fileUrl}?token=${tok}`;
+      const downloadUrl = `${v.fileUrl}?token=${tok}&download=1`;
+      return `
+      <tr>
+        <td class="mono">${esc(v.rollNumber || v.dotId)}</td>
+        <td>${initialsAvatar(v.name)}${esc(v.name)}</td>
+        <td>${esc(v.branch)}</td>
+        <td>${esc(v.section)}</td>
+        <td class="mono">${esc(v.fileName)}</td>
+        <td>${esc(fmtBytes(v.sizeBytes))}</td>
+        <td><span class="tag ${v.source === 'public' ? 'invalid' : 'active'}">${v.source === 'public' ? 'Self-upload' : 'Staff'}</span></td>
+        <td>${esc(v.uploadedBy || '')}</td>
+        <td class="muted">${esc(when)}</td>
+        <td class="row-actions">
+          <a class="link-btn" href="${playUrl}" target="_blank" rel="noopener" title="Play">
+            <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M6 4l14 8-14 8V4z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="link-btn" href="${downloadUrl}" title="Download">
+            <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M12 3v12M7 10l5 5 5-5M4 21h16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <button class="link-btn danger" data-act="del-video" data-id="${v._id}">${iconLabel('trash', 'Delete')}</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  document.getElementById('videoPageInfo').textContent =
+    rows.length ? `Page ${videoPage} of ${totalPages} · ${rows.length} video${rows.length === 1 ? '' : 's'}` : '';
+  document.getElementById('videoPrevBtn').disabled = videoPage <= 1;
+  document.getElementById('videoNextBtn').disabled = videoPage >= totalPages;
+}
+
+function fmtBytes(n) {
+  if (!n && n !== 0) return '';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let i = 0, val = n;
+  while (val >= 1024 && i < units.length - 1) { val /= 1024; i++; }
+  return `${val.toFixed(val < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
+}
+
+document.getElementById('videoSearch').addEventListener('input', () => { videoPage = 1; renderVideos(); });
+document.getElementById('videoSourceFilter').addEventListener('change', () => { videoPage = 1; renderVideos(); });
+document.getElementById('refreshVideosBtn').addEventListener('click', loadVideos);
+document.getElementById('videoPrevBtn').addEventListener('click', () => { videoPage--; renderVideos(); });
+document.getElementById('videoNextBtn').addEventListener('click', () => { videoPage++; renderVideos(); });
+
+document.getElementById('videosBody').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  if (btn.dataset.act === 'del-video') {
+    if (!confirm('Delete this video? This cannot be undone.')) return;
+    await authedFetch(`/videos/${btn.dataset.id}`, { method: 'DELETE' });
+    loadVideos();
+  }
+});
+
+// ============================================================================
 // INIT
 // ============================================================================
 (async () => {
@@ -582,4 +681,5 @@ document.getElementById('dwExportBtn')?.addEventListener('click', () => {
   loadResults();
   loadVolunteers();
   loadDaywise();
+  loadVideos();
 })();

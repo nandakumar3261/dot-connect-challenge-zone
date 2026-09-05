@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" data-default-theme="dark">
+<head>
+<script>(function(){try{var t=localStorage.getItem('dcz_theme')||document.documentElement.getAttribute('data-default-theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoTT Connect 2026 — Upload Your Video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="assets/favicon-32.png">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/icon-512.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/logo-icon.png" alt="DoTT Connect" class="brand-icon" aria-hidden="true">
+      <span class="brand-text">
+        <span class="brand-name">DoTT&nbsp;Connect <b>2026</b></span>
+        <span class="brand-sub">Challenge Zone · Sept 2–11, 2026</span>
+      </span>
+    </div>
+    <div class="topbar-right">
+      <a href="index.html" class="btn btn-ghost">Leaderboard</a>
+      <button id="themeToggle" class="theme-toggle" title="Toggle light / dark" aria-label="Toggle light or dark mode">🌙</button>
+    </div>
+  </header>
+
+  <main class="reg-main">
+    <p class="reg-intro">Upload your own challenge video — no sign-in needed. Enter the roll number you registered with, then attach a video file <b>named exactly after your roll number</b> (for example, if your roll number is <span class="mono">21A091</span>, the file must be named <span class="mono">21A091.mp4</span>). This is how we make sure the video lands on the right profile.</p>
+
+    <div class="reg-card">
+      <h1><span class="step">1</span> Find your profile</h1>
+      <div class="field"><label for="rollInput">Roll number *</label><input id="rollInput" placeholder="Your roll number" autocomplete="off"></div>
+      <button id="lookupBtn" class="btn btn-primary btn-block">Find my profile</button>
+      <p id="lookupMsg" class="form-msg"></p>
+
+      <div id="studentBox" hidden>
+        <div class="upload-student-detail" id="studentDetail"></div>
+      </div>
+    </div>
+
+    <div class="reg-card" id="uploadCard" hidden>
+      <h1><span class="step">2</span> Upload your video</h1>
+      <div class="field">
+        <label for="videoFile">Video file <span class="muted">(file name must equal your roll number)</span></label>
+        <input id="videoFile" type="file" accept="video/*">
+      </div>
+      <p id="fileNameCheck" class="form-msg"></p>
+
+      <div id="videoPreviewWrap" hidden>
+        <video id="videoPreview" controls></video>
+      </div>
+
+      <button id="uploadBtn" class="btn btn-primary btn-block" disabled>Upload video</button>
+      <div id="uploadProgressWrap" class="upload-progress" hidden>
+        <div id="uploadProgressBar"></div>
+      </div>
+      <p id="uploadMsg" class="form-msg"></p>
+    </div>
+  </main>
+
+  <script src="theme.js"></script>
+  <script src="upload-video.js"></script>
+</body>
+</html>
