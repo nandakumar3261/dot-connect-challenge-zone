@@ -250,23 +250,6 @@ label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-
 .reg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px 14px; margin-bottom: 6px; }
 .reg-grid .field label { margin-top: 4px; }
 
-/* ---------- video upload (video.html) ---------- */
-#videoPreviewWrap { margin: 10px 0 4px; }
-#videoPreview {
-  width: 100%; max-height: 320px; border-radius: 11px; background: #000;
-  border: 1px solid var(--line-2); display: block;
-}
-.upload-progress {
-  height: 8px; border-radius: 999px; background: var(--surface-2);
-  border: 1px solid var(--line-2); overflow: hidden; margin-top: 14px;
-}
-#uploadProgressBar { height: 100%; width: 0%; background: var(--accent); transition: width .15s; }
-.submission-list { display: flex; flex-direction: column; gap: 8px; }
-.submission-item {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 11px 14px; border: 1px solid var(--line-2); border-radius: 11px; background: var(--surface-2);
-}
-
 .register-panel { max-width: 720px; margin: 0 auto; }
 .reg-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; }
 .reg-icon {
@@ -314,8 +297,6 @@ label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-
 .stats-bar strong { display: block; color: var(--text); font-size: 1.6rem; font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; }
 
 .table-wrap { overflow-x: auto; }
-.pager { display: flex; align-items: center; justify-content: center; gap: 14px; padding-top: 14px; }
-.pager .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
 .data-table th {
   text-align: left; color: var(--text-dim); font-weight: 600; padding: 9px 8px;

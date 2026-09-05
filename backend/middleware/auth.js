@@ -3,16 +3,9 @@ const jwt = require('jsonwebtoken');
 // Verifies the Bearer token and attaches the account to req.user:
 //   { id, username, role, permissions }
 // Volunteers and admins both authenticate; the role/permissions drive access.
-//
-// Normally the token comes in the Authorization header (used by every
-// fetch()-based call in the frontend). A GET request made via a plain <a> or
-// <video src> — e.g. the video Play/Download links in the admin table —
-// can't set a custom header, so as a fallback those may pass the same token
-// as ?token=... instead.
 function requireAuth(req, res, next) {
   const header = req.headers.authorization || '';
-  let token = header.startsWith('Bearer ') ? header.slice(7) : null;
-  if (!token && req.query && req.query.token) token = req.query.token;
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) return res.status(401).json({ error: 'Missing sign-in token.' });
 
   try {

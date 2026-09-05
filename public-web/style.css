@@ -207,23 +207,6 @@ input::placeholder { color: var(--text-dim); }
 .form-msg.ok { color: var(--typing); }
 .form-msg.err { color: var(--error); }
 
-/* ---------- upload-your-video page ---------- */
-.mono { font-family: 'JetBrains Mono', monospace; }
-.reg-card + .reg-card { margin-top: 18px; }
-.reg-card .step {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 22px; height: 22px; border-radius: 6px; background: var(--typing); color: #06251c;
-  font-size: 0.75rem; font-weight: 800; margin-right: 8px; vertical-align: middle;
-}
-.upload-student-detail { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
-.upload-student-detail .sd-item { display: flex; flex-direction: column; }
-.upload-student-detail .sd-item .k { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); }
-.upload-student-detail .sd-item .v { font-weight: 600; }
-#videoPreviewWrap { margin: 10px 0 4px; }
-#videoPreview { width: 100%; max-height: 320px; border-radius: 11px; background: #000; border: 1px solid var(--line); display: block; }
-.upload-progress { height: 8px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; margin-top: 14px; }
-#uploadProgressBar { height: 100%; width: 0%; background: var(--typing); transition: width .15s; }
-
 
 /* ============================================================================
    LIGHT THEME (toggle) — overrides the dark defaults in :root above.
