@@ -2,6 +2,7 @@ const express = require('express');
 const Student = require('../models/Student');
 const Result = require('../models/Result');
 const { CHALLENGES, CHALLENGE_KEYS, summariseMetrics } = require('../challengeConfig');
+const { rankTop } = require('../lib/ranking');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
@@ -28,15 +29,36 @@ router.get('/students.csv', async (req, res) => {
   res.type('text/csv').send(csv);
 });
 
-// GET /api/export/results.csv?challenge=<key|all>  — never includes mobile (§15).
+// Split one challenge's results into leaderboard-ranked rows (active, best
+// first, ties sharing a rank — same rule as the public board) followed by
+// the non-active rows (superseded/invalid) kept for audit with a blank rank,
+// sorted oldest-first as before.
+function rankForExport(challengeKey, rows) {
+  const active = rows.filter(r => r.status === 'active');
+  const rest = rows.filter(r => r.status !== 'active')
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  const ranked = rankTop(challengeKey, active, active.length);
+  return [
+    ...ranked.map(r => ({ ...r, rank: r.rank })),
+    ...rest.map(r => ({ ...r, rank: '' }))
+  ];
+}
+
+// GET /api/export/results.csv?challenge=<key|all>
+//
+// Includes each student's mobile number (looked up from the Student
+// collection, since Result rows never store it — for prize/winner contact).
 //
 // challenge=<speedcube|chess|typing|debug>  -> one column PER FIELD the
 //   volunteer actually typed into the record form for that game (e.g. Chess:
 //   separate "Puzzles solved", "Mistakes", "Minutes", "Seconds" columns) —
-//   not a single mashed-together summary string.
+//   not a single mashed-together summary string. Rows follow the same "top
+//   order" as the public leaderboard for that game (best result first, ties
+//   sharing a rank), with any superseded/invalid attempts listed after.
 // challenge=all (or omitted)                -> every challenge in one file,
-//   kept as a combined "Result" summary column since the games don't share
-//   the same fields and can't be lined up column-for-column.
+//   grouped by challenge (in leaderboard order) and ranked within each
+//   group the same way, kept as a combined "Result" summary column since the
+//   games don't share the same fields and can't be lined up column-for-column.
 router.get('/results.csv', async (req, res) => {
   const challenge = req.query.challenge || 'all';
 
@@ -45,16 +67,25 @@ router.get('/results.csv', async (req, res) => {
   }
 
   const filter = challenge === 'all' ? {} : { challenge };
-  const results = await Result.find(filter).sort({ challenge: 1, createdAt: 1 }).lean();
+  const results = await Result.find(filter).lean();
+
+  // Mobile lookup keyed by Student _id (Result rows don't carry it).
+  const studentIds = [...new Set(results.map(r => String(r.student)))];
+  const students = await Student.find({ _id: { $in: studentIds } }, 'mobile').lean();
+  const mobileById = new Map(students.map(s => [String(s._id), s.mobile]));
 
   let csv, filename;
 
   if (challenge === 'all') {
+    const rows = CHALLENGE_KEYS.flatMap(key =>
+      rankForExport(key, results.filter(r => r.challenge === key))
+    );
     csv = toCsv(
-      ['Challenge', 'DoTT ID', 'Roll Number', 'Name', 'Branch', 'Section', 'Result', 'Status', 'Recorded By', 'Recorded At'],
-      results.map(r => [
+      ['Rank', 'Challenge', 'DoTT ID', 'Roll Number', 'Name', 'Mobile', 'Branch', 'Section', 'Result', 'Status', 'Recorded By', 'Recorded At'],
+      rows.map(r => [
+        r.rank,
         CHALLENGES[r.challenge] ? CHALLENGES[r.challenge].name : r.challenge,
-        r.dotId, r.rollNumber || '', r.name, r.branch, r.section,
+        r.dotId, r.rollNumber || '', r.name, mobileById.get(String(r.student)) || '', r.branch, r.section,
         summariseMetrics(r.challenge, r.metrics), r.status, r.recordedBy || '',
         new Date(r.createdAt).toISOString()
       ])
@@ -62,13 +93,15 @@ router.get('/results.csv', async (req, res) => {
     filename = 'dotconnect-results-all.csv';
   } else {
     const cfg = CHALLENGES[challenge];
+    const rows = rankForExport(challenge, results);
     // One column per raw input field, in the exact order the record form
     // asks for them — header includes the unit, e.g. "Minutes (m)".
     const fieldHeaders = cfg.fields.map(f => f.unit ? `${f.label} (${f.unit})` : f.label);
     csv = toCsv(
-      ['DoTT ID', 'Roll Number', 'Name', 'Branch', 'Section', ...fieldHeaders, 'Status', 'Recorded By', 'Recorded At'],
-      results.map(r => [
-        r.dotId, r.rollNumber || '', r.name, r.branch, r.section,
+      ['Rank', 'DoTT ID', 'Roll Number', 'Name', 'Mobile', 'Branch', 'Section', ...fieldHeaders, 'Status', 'Recorded By', 'Recorded At'],
+      rows.map(r => [
+        r.rank,
+        r.dotId, r.rollNumber || '', r.name, mobileById.get(String(r.student)) || '', r.branch, r.section,
         ...cfg.fields.map(f => (r.metrics && r.metrics[f.key] != null ? r.metrics[f.key] : '')),
         r.status, r.recordedBy || '',
         new Date(r.createdAt).toISOString()
